@@ -1,0 +1,42 @@
+prefix = /usr/local
+baseflags = -Wall -flto -Iinclude/ini
+sanflags = -fsanitize=address,undefined
+libs = -lJudy
+
+include active.gen.ninja
+
+rule cc
+  deps = gcc
+  depfile = $out.d
+  command = gcc -MMD -MF $out.d $cflags $defines $in -c -o $out
+
+rule bin
+  deps = gcc
+  depfile = $out.d
+  command = gcc -MMD -MF $out.d $cflags $defines $in -o $out $libs
+
+rule so
+  deps = gcc
+  depfile = $out.d
+  command = gcc -MMD -MF $out.d -fPIC $cflags $defines -shared $in -o $out
+
+# ...sources
+build out/ini.o: cc src/ini.c | active.gen.ninja
+build out/map.o: cc src/map.c | active.gen.ninja
+build out/handle.o: cc src/handle.c | active.gen.ninja
+build out/tojson.o: cc src/tojson.c | active.gen.ninja
+  defines = -DVERSION='"1"'
+build out/test.o: cc src/test.c | active.gen.ninja
+
+# ...outputs
+build test: bin out/test.o out/ini.o out/map.o out/handle.o | active.gen.ninja
+
+build tojson: bin out/tojson.o out/ini.o out/map.o out/handle.o | active.gen.ninja
+  libs = $libs -ljansson
+
+build libini.so: so out/ini.o out/map.o out/handle.o | active.gen.ninja
+
+# toplevel
+build all: phony test tojson libini.so
+default all
+
