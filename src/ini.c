@@ -28,7 +28,7 @@ void ini_parse_line(
     // strip trailing space
     for (; end > line && (*end == ' ' || *end == '\t' || *end == '\n'); end--);
     // empty?
-    if (!*line || line >= end) {
+    if (!*line || line > end) {
         *ev = (struct ini_event) { .kind = INI_EVENT_NONE };
         return;
     }
