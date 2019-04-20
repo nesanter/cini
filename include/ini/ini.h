@@ -20,6 +20,14 @@
 
 #include <stddef.h>
 
+/* if defined, line passed to ini_parse_line()
+ * is not modified (null terminators are not inserted.)
+ */
+#ifdef INI_CONST_LINE
+typedef const char line_t;
+#else
+typedef char line_t;
+#endif /* INI_CONST_LINE */
 
 /* result of ini_parse_line() */
 struct ini_event {
