@@ -20,10 +20,6 @@
 
 #include <stddef.h>
 
-struct ini_string {
-    char * s;
-    size_t length;
-};
 
 struct ini_event {
     enum ini_event_kind {
@@ -39,6 +35,5 @@ struct ini_event {
 
 void ini_parse_line(char * line, size_t length, struct ini_event * ev);
 
-//struct ini_string * ini_string_dup(struct ini_string str);
 
 #endif /* INI_H */
