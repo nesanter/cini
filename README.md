@@ -1,1 +1,3 @@
 # cini
+
+`./configure release && ninja`
