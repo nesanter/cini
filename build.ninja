@@ -2,6 +2,7 @@ prefix = /usr/local
 baseflags = -Wall -flto -Iinclude/ini
 sanflags = -fsanitize=address,undefined
 libs = -lJudy
+defines = -DVERSION='"1"' $defines
 
 include active.gen.ninja
 
@@ -25,18 +26,19 @@ build out/ini.o: cc src/ini.c | active.gen.ninja
 build out/map.o: cc src/map.c | active.gen.ninja
 build out/handle.o: cc src/handle.c | active.gen.ninja
 build out/tojson.o: cc src/tojson.c | active.gen.ninja
-  defines = -DVERSION='"1"'
+build out/reduce.o: cc src/reduce.c | active.gen.ninja
 build out/test.o: cc src/test.c | active.gen.ninja
 
 # ...outputs
 build test: bin out/test.o out/ini.o out/map.o out/handle.o | active.gen.ninja
-
-build tojson: bin out/tojson.o out/ini.o out/map.o out/handle.o | active.gen.ninja
+build ini-merge: bin out/reduce.o out/ini.o out/map.o | active.gen.ninja
+build ini-tojson: bin out/tojson.o out/ini.o out/map.o out/handle.o | active.gen.ninja
   libs = $libs -ljansson
 
 build libini.so: so out/ini.o out/map.o out/handle.o | active.gen.ninja
 
-# toplevel
-build all: phony test tojson libini.so
+# ...toplevel
+build tools: phony ini-merge ini-tojson
+build all: phony test tools libini.so
 default all
 
