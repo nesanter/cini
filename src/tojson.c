@@ -37,7 +37,7 @@ static char args_doc[] =
 static struct argp_option options[] = {
     { "out", 'o', "FILE", 0, "Write output to FILE" },
     { "no-flatten", 1000, 0, 0, "Flatten default section" },
-    { "default-section", 1001, "KEY", 0, "Use KEY for default section" },
+    { "default", 'd', "KEY", 0, "Use KEY for default section" },
     { "no-arrays", 1002, 0, 0, "Disable special *key interpretation" },
     { "null-deletes", 1003, 0, 0, "Use null for key deletion" },
     { 0 }
@@ -148,7 +148,7 @@ static error_t parse_opt(int key, char * arg, struct argp_state * state)
         case 1000: // no-flatten
             args.flatten = false;
             break;
-        case 1001: // default-section
+        case 'd': // default-section
             args.default_section = strdup(arg);
             break;
         case 1002: //no-arrays
