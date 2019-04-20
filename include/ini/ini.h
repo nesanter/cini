@@ -21,7 +21,15 @@
 #include <stddef.h>
 
 
+/* result of ini_parse_line() */
 struct ini_event {
+    /* type of event (args[] count)
+     *  - NONE : blank (0)
+     *  - COMMENT : #comment (1)
+     *  - SECTION : [section] (1)
+     *  - KEY_VALUE : key=value (2)
+     *  - REMOVE_KEY : removal (1)
+     */
     enum ini_event_kind {
         INI_EVENT_NONE,
         INI_EVENT_COMMENT,
@@ -29,11 +37,23 @@ struct ini_event {
         INI_EVENT_KEY_VALUE,
         INI_EVENT_REMOVE_KEY
     } kind;
-    char * args[2];
+    /* args[] depends on type,
+     *  - #comment : all after #
+     *  - [section] : section name (no [])
+     *  - key=value : key, value
+     *  - removal : key
+     *
+     * if INI_CONST_LINE is not defined,
+     * line is modified such that args[] are null terminated
+     */
+    line_t * args[2];
+    /* length of each arg */
     size_t length[2];
 };
 
-void ini_parse_line(char * line, size_t length, struct ini_event * ev);
-
+/* parse a single line of length characters and fill *ev with event
+ * line may contain embedded newlines (i.e. is not necessarily a true line)
+ */
+void ini_parse_line(line_t * line, size_t length, struct ini_event * ev);
 
 #endif /* INI_H */
