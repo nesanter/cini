@@ -101,11 +101,23 @@ int test_query_map(const char * name, const char * key)
     return 0;
 }
 
-int test_2()
+int test_builtin()
 {
+
+    static char builtin[] =
+        "foo = bar\n"
+        "[sub]\n"
+        "defaults = yes\n"
+        ;
+
     void * base = NULL;
     struct ini_map_root * map = ini_map_create(base);
-    ini_map_read(map, stdin);
+
+    FILE * f = fmemopen(builtin, sizeof(builtin), "r");
+
+    ini_map_read(map, f);
+
+    fclose(f);
 
     struct ini_map_section * section = ini_map_get_section(map, "");
     if (!section) {
@@ -123,12 +135,6 @@ int test_2()
     return 0;
 }
 
-char builtin[] =
-    "foo = bar\n"
-    "[sub]\n"
-    "defaults = yes\n"
-    ;
-
 
 static int inc = 0;
 
@@ -143,7 +149,6 @@ static int opt_print2(const char * key, const char * value)
     printf("%d %s = %s\n", inc++, key, value);
     return 0;
 }
-
 
 int main(int argc, char ** argv)
 {
