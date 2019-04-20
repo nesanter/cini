@@ -36,20 +36,20 @@ struct ini_event {
      *  - COMMENT : #comment (1)
      *  - SECTION : [section] (1)
      *  - KEY_VALUE : key=value (2)
-     *  - REMOVE_KEY : removal (1)
+     *  - KEY_ONLY : key (1)
      */
     enum ini_event_kind {
         INI_EVENT_NONE,
         INI_EVENT_COMMENT,
         INI_EVENT_SECTION,
         INI_EVENT_KEY_VALUE,
-        INI_EVENT_REMOVE_KEY
+        INI_EVENT_KEY_ONLY
     } kind;
     /* args[] depends on type,
      *  - #comment : all after #
      *  - [section] : section name (no [])
      *  - key=value : key, value
-     *  - removal : key
+     *  - key : key
      *
      * if INI_CONST_LINE is not defined,
      * line is modified such that args[] are null terminated

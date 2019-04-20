@@ -111,7 +111,7 @@ static void tojson(FILE * f)
                     json_object_set_new(section, ev.args[0], json_string(ev.args[1]));
                 }
                 break;
-            case INI_EVENT_REMOVE_KEY:
+            case INI_EVENT_KEY_ONLY:
                 if (args.null_deletes) {
                     json_object_set_new(section, ev.args[0], json_null());
                 } else {

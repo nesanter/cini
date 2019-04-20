@@ -187,7 +187,7 @@ void ini_map_read(struct ini_map_root * map, FILE * file)
                 if (*tmp) free(*tmp);
                 *tmp = strdup(ev.args[1]);
                 break;
-            case INI_EVENT_REMOVE_KEY:
+            case INI_EVENT_KEY_ONLY:
                 tmp = ini_map_section_get_value(section, ev.args[0]);
                 if (tmp) free(*tmp);
                 ini_map_section_delete_key(section, ev.args[0]);

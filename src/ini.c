@@ -76,9 +76,9 @@ void ini_parse_line(
         };
         return;
     }
-    // else, removal
+    // else, key only
     *ev = (struct ini_event) {
-        .kind = INI_EVENT_REMOVE_KEY,
+        .kind = INI_EVENT_KEY_ONLY,
         .args = { line },
         .length = { end - line }
     };

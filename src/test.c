@@ -47,7 +47,7 @@ void test_print_events()
                         ev.args[0],
                         ev.args[1]);
                 break;
-            case INI_EVENT_REMOVE_KEY:
+            case INI_EVENT_KEY_ONLY:
                 printf("D %zu: %s\n", ev.length[0], ev.args[0]);
                 break;
         }
