@@ -2,9 +2,10 @@ prefix = /usr/local
 baseflags = -Wall -flto -Iinclude/ini
 sanflags = -fsanitize=address,undefined
 libs = -lJudy
-defines = -DVERSION='"1"' $defines
 
 include active.gen.ninja
+
+defines = -DVERSION="\"$version\"" $defines
 
 rule cc
   deps = gcc
@@ -20,6 +21,12 @@ rule so
   deps = gcc
   depfile = $out.d
   command = gcc -MMD -MF $out.d -fPIC $cflags $defines -shared $in -o $out
+
+rule no-ninja
+  command = ninja -t commands > $out
+
+rule archive
+  command = git archive -o $out HEAD
 
 # ...sources
 build out/ini.o: cc src/ini.c | active.gen.ninja
@@ -42,3 +49,6 @@ build tools: phony ini-merge ini-tojson
 build all: phony test tools libini.so
 default all
 
+# ...packaging
+build dist: phony pkg/no-ninja
+build pkg/no-ninja: no-ninja
