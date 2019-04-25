@@ -18,26 +18,27 @@
 #include "map.h"
 #include "opts.h"
 
-int ini_handle(FILE * file, enum ini_handle_opt root_opts, ...)
+int ini_handle(FILE * file, void * data, enum ini_handle_opt root_opts, ...)
 {
     va_list args;
     va_start(args, root_opts);
 
-    int r = ini_vhandle(file, root_opts, args);
+    int r = ini_vhandle(file, data, root_opts, args);
 
     va_end(args);
 
     return r;
 }
 
-int ini_vhandle(FILE * file, enum ini_handle_opt root_opts, va_list args)
+int ini_vhandle(FILE * file, void * data, enum ini_handle_opt root_opts, va_list args)
 {
     void * base = NULL;
     struct ini_map_root * map = ini_map_create(base);
-    ini_map_read(map, stdin);
+    ini_map_read(map, file);
 
     const char * name;
     const char * key;
+    int r;
     while ((name = va_arg(args, const char *))) {
         enum ini_handle_opt opts = va_arg(args, enum ini_handle_opt);
 
@@ -81,11 +82,15 @@ int ini_vhandle(FILE * file, enum ini_handle_opt root_opts, va_list args)
                     continue;
                 }
                 if (action) {
-                    action(key, NULL);
+                    if ((r = action(data, key, NULL))) {
+                        return r;
+                    }
                 }
             } else {
                 if (action) {
-                    action(key, *value);
+                    if ((r = action(data, key, *value))) {
+                        return r;
+                    }
                 }
                 if (*value) {
                     free(*value);

@@ -138,13 +138,13 @@ int test_builtin()
 
 static int inc = 0;
 
-static int opt_print(const char * key, const char * value)
+static int opt_print(void * data, const char * key, const char * value)
 {
-    printf("%s = %s\n", key, value);
+    printf("%s %s = %s\n", (char*)data, key, value);
     return 0;
 }
 
-static int opt_print2(const char * key, const char * value)
+static int opt_print2(void * data, const char * key, const char * value)
 {
     printf("%d %s = %s\n", inc++, key, value);
     return 0;
@@ -154,6 +154,7 @@ int main(int argc, char ** argv)
 {
     return ini_handle(
             stdin,
+            "test",
             STRICT,
             "", REQUIRED | STRICT,
                 "foo", OPTIONAL, opt_print,
