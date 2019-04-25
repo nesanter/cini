@@ -1,2 +1,2 @@
-cflags = $baseflags -g -Og $sanflags
+cflags = $baseflags -g -Og $sanflags -fdiagnostics-color -Werror
 version = debug
