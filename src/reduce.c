@@ -46,8 +46,6 @@ static struct {
     0
 };
 
-
-
 void map_out(struct ini_map_root * map, FILE * f) {
     void key_iter(const char * key, char ** value) {
         fprintf(f, "%s = %s\n", key, *value);
