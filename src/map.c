@@ -197,3 +197,21 @@ void ini_map_read(struct ini_map_root * map, FILE * file)
     free(line);
 }
 
+void ini_map_write(struct ini_map_root * map, FILE * file)
+{
+    void key_iter(const char * key, char ** value)
+    {
+        if (value) {
+            fprintf(file, "%s = %s\n", key, *value);
+        }
+    }
+
+    void sec_iter(const char * name, struct ini_map_section * section)
+    {
+        fprintf(file, "[%s]\n", name);
+        ini_map_section_for(section, key_iter);
+    }
+
+    ini_map_for(map, sec_iter);
+}
+
