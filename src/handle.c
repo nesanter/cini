@@ -55,6 +55,7 @@ int ini_vhandle(FILE * file, const char * prefix, enum ini_handle_opt root_opts,
                     if (!key) break;
                     enum ini_handle_opt key_opts = va_arg(args, enum ini_handle_opt);
                     void * action = va_arg(args, void *);
+                    void * data = va_arg(args, ini_handle_fn);
                     (void)key_opts;
                     (void)action;
                 }
