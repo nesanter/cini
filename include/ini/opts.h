@@ -19,6 +19,7 @@
 #define INI_UTIL_H
 
 #include <stdarg.h>
+#include <stdio.h>
 
 enum ini_handle_opt {
     OPTIONAL      = 0,
