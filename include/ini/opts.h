@@ -27,9 +27,9 @@ enum ini_handle_opt {
     STRICT        = 4
 };
 
-typedef int (*ini_handle_fn)(void * data, const char * key, const char * value);
+typedef int (*ini_handle_fn)(const char * key, const char * value, void * data);
 
-int ini_handle(FILE * file, void * data, enum ini_handle_opt root_opts, ...);
-int ini_vhandle(FILE * file, void * data, enum ini_handle_opt root_opts, va_list args);
+int ini_handle(FILE * file, const char * prefix, enum ini_handle_opt root_opts, ...);
+int ini_vhandle(FILE * file, const char * prefix, enum ini_handle_opt root_opts, va_list args);
 
 #endif /* INI_UTIL_H */

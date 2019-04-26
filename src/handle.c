@@ -18,19 +18,19 @@
 #include "map.h"
 #include "opts.h"
 
-int ini_handle(FILE * file, void * data, enum ini_handle_opt root_opts, ...)
+int ini_handle(FILE * file, const char * prefix, enum ini_handle_opt root_opts, ...)
 {
     va_list args;
     va_start(args, root_opts);
 
-    int r = ini_vhandle(file, data, root_opts, args);
+    int r = ini_vhandle(file, prefix, root_opts, args);
 
     va_end(args);
 
     return r;
 }
 
-int ini_vhandle(FILE * file, void * data, enum ini_handle_opt root_opts, va_list args)
+int ini_vhandle(FILE * file, const char * prefix, enum ini_handle_opt root_opts, va_list args)
 {
     void * base = NULL;
     struct ini_map_root * map = ini_map_create(base);
@@ -45,7 +45,7 @@ int ini_vhandle(FILE * file, void * data, enum ini_handle_opt root_opts, va_list
         struct ini_map_section * section = ini_map_get_section(map, name);
         if (!section) {
             if (opts & REQUIRED) {
-                fprintf(stderr, "missing required section [%s]\n", name);
+                fprintf(stderr, "%smissing required section [%s]\n", prefix, name);
                 ini_map_free(map);
                 return 1;
             }
@@ -65,6 +65,7 @@ int ini_vhandle(FILE * file, void * data, enum ini_handle_opt root_opts, va_list
         while ((key = va_arg(args, const char *))) {
             enum ini_handle_opt key_opts = va_arg(args, enum ini_handle_opt);
             ini_handle_fn action = va_arg(args, ini_handle_fn);
+            void * data = va_arg(args, void *);
             char ** value = NULL;
             if (section) {
                 value = ini_map_section_get_value(section, key);
@@ -74,7 +75,7 @@ int ini_vhandle(FILE * file, void * data, enum ini_handle_opt root_opts, va_list
                     if (!section) {
                         continue;
                     }
-                    fprintf(stderr, "missing required key %s in section [%s]\n", key, name);
+                    fprintf(stderr, "%smissing required key %s in section [%s]\n", prefix, key, name);
                     ini_map_free(map);
                     return 1;
                 }
@@ -82,13 +83,13 @@ int ini_vhandle(FILE * file, void * data, enum ini_handle_opt root_opts, va_list
                     continue;
                 }
                 if (action) {
-                    if ((r = action(data, key, NULL))) {
+                    if ((r = action(key, NULL, data))) {
                         return r;
                     }
                 }
             } else {
                 if (action) {
-                    if ((r = action(data, key, *value))) {
+                    if ((r = action(key, *value, data))) {
                         return r;
                     }
                 }
@@ -103,7 +104,7 @@ int ini_vhandle(FILE * file, void * data, enum ini_handle_opt root_opts, va_list
             int unknown = 0;
             void key_iter(const char * key, char ** value)
             {
-                fprintf(stderr, "unknown key %s in section [%s]\n", key, name);
+                fprintf(stderr, "%sunknown key %s in section [%s]\n", prefix, key, name);
                 unknown++;
             }
             ini_map_section_for(section, key_iter);
@@ -122,7 +123,7 @@ int ini_vhandle(FILE * file, void * data, enum ini_handle_opt root_opts, va_list
         int unknown = 0;
         void sec_iter(const char * name, struct ini_map_section * section)
         {
-            fprintf(stderr, "unknown section [%s]\n", name);
+            fprintf(stderr, "%sunknown section [%s]\n", prefix, name);
             unknown++;
         }
         ini_map_for(map, sec_iter);
