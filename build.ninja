@@ -51,4 +51,4 @@ default all
 
 # ...packaging
 build dist: phony pkg/no-ninja
-build pkg/no-ninja: no-ninja
+build pkg/no-ninja: no-ninja | active.gen.ninja
