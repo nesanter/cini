@@ -16,7 +16,6 @@
  * along with cini.  If not, see <https://www.gnu.org/licenses/>.
  */
 #include "ini.h"
-#include <Judy.h>
 #include <string.h>
 #include <assert.h>
 

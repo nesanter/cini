@@ -1,7 +1,7 @@
 prefix = /usr/local
 baseflags = -Wall -flto -Iinclude/ini
 sanflags = -fsanitize=address,undefined
-libs = -lJudy
+libs = 
 
 include active.gen.ninja
 
