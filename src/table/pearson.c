@@ -1,5 +1,6 @@
-#include "hash/pearson.h"
+#include "table/pearson.h"
 
+#include <stddef.h>
 #include <stdint.h>
 #include <stdlib.h> //rand
 
@@ -20,7 +21,7 @@ void pearson_init(
     }
 }
 
-void pearson(
+uint8_t pearson(
     const struct pearson_data * pearson_data,
     size_t nth,
     const uint8_t * data,
@@ -28,7 +29,7 @@ void pearson(
 {
     uint8_t x = pearson_data->data[(data[0] + nth) & PEARSON_MASK];
     for (size_t dn = 1; dn < data_length; dn++) {
-        x = pearson_data->data[x ^ data[i]];
+        x = pearson_data->data[x ^ data[dn]];
     }
     return x;
 }

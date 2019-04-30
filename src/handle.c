@@ -17,6 +17,9 @@
  */
 #include "map.h"
 #include "opts.h"
+#include "table/table.h"
+#include <stdlib.h>
+#include <string.h>
 
 int ini_handle(FILE * file, const char * prefix, enum ini_handle_opt root_opts, ...)
 {
@@ -32,9 +35,12 @@ int ini_handle(FILE * file, const char * prefix, enum ini_handle_opt root_opts, 
 
 int ini_vhandle(FILE * file, const char * prefix, enum ini_handle_opt root_opts, va_list args)
 {
+    /*
     void * base = NULL;
     struct ini_map_root * map = ini_map_create(base);
     ini_map_read(map, file);
+    */
+    struct table * root = ini_table_read(file, NULL);
 
     const char * name;
     const char * key;
@@ -42,11 +48,13 @@ int ini_vhandle(FILE * file, const char * prefix, enum ini_handle_opt root_opts,
     while ((name = va_arg(args, const char *))) {
         enum ini_handle_opt opts = va_arg(args, enum ini_handle_opt);
 
-        struct ini_map_section * section = ini_map_get_section(map, name);
+        //struct ini_map_section * section = ini_map_get_section(map, name);
+        struct table * section = table_pop(root, (uint8_t*)name, strlen(name));
         if (!section) {
             if (opts & REQUIRED) {
                 fprintf(stderr, "%smissing required section [%s]\n", prefix, name);
-                ini_map_free(map);
+                //ini_map_free(map);
+                ini_table_free(root);
                 return 1;
             }
             if (opts & SKIP) {
@@ -68,9 +76,10 @@ int ini_vhandle(FILE * file, const char * prefix, enum ini_handle_opt root_opts,
             enum ini_handle_opt key_opts = va_arg(args, enum ini_handle_opt);
             ini_handle_fn action = va_arg(args, ini_handle_fn);
             void * data = va_arg(args, void *);
-            char ** value = NULL;
+            struct ini_entry * value = NULL;
             if (section) {
-                value = ini_map_section_get_value(section, key);
+                //value = ini_map_section_get_value(section, key);
+                value = table_pop(section, (uint8_t*)key, strlen(key));
             }
             if (!value) {
                 if (key_opts & REQUIRED) {
@@ -78,7 +87,11 @@ int ini_vhandle(FILE * file, const char * prefix, enum ini_handle_opt root_opts,
                         continue;
                     }
                     fprintf(stderr, "%smissing required key %s in section [%s]\n", prefix, key, name);
-                    ini_map_free(map);
+                    //ini_map_free(map);
+                    if (section) {
+                        ini_section_free(section);
+                    }
+                    ini_table_free(root);
                     return 1;
                 }
                 if (key_opts & SKIP) {
@@ -86,56 +99,70 @@ int ini_vhandle(FILE * file, const char * prefix, enum ini_handle_opt root_opts,
                 }
                 if (action) {
                     if ((r = action(key, NULL, data))) {
+                        if (section) {
+                            ini_section_free(section);
+                        }
+                        ini_table_free(root);
                         return r;
                     }
                 }
             } else {
                 if (action) {
-                    if ((r = action(key, *value, data))) {
+                    if ((r = action(key, (const char*)value->data, data))) {
+                        free(value);
+                        ini_section_free(section);
+                        ini_table_free(root);
                         return r;
                     }
                 }
-                if (*value) {
-                    free(*value);
-                }
-                ini_map_section_delete_key(section, key);
+                free(value);
+                //ini_map_section_delete_key(section, key);
             }
         }
 
         if (opts & STRICT) {
             int unknown = 0;
-            void key_iter(const char * key, char ** value)
+            int key_iter(const uint8_t * key, size_t length, void ** value)
             {
-                fprintf(stderr, "%sunknown key %s in section [%s]\n", prefix, key, name);
+                fprintf(stderr, "%sunknown key %.*s in section [%s]\n", prefix, (int)length, key, name);
                 unknown++;
+                return 0;
             }
-            ini_map_section_for(section, key_iter);
+            table_for(section, key_iter);
             if (unknown) {
                 //ini_map_free_section(section);
-                ini_map_free(map);
+                //ini_map_free(map);
+                ini_section_free(section);
+                ini_table_free(root);
                 return 1;
             }
         }
         if (section) {
+            ini_section_free(section);
+        }
+        /*
+        if (section) {
             ini_map_delete_section(map, name);
         }
+        */
     }
 
     if (root_opts & STRICT) {
         int unknown = 0;
-        void sec_iter(const char * name, struct ini_map_section * section)
+        int sec_iter(const uint8_t * name, size_t length, void ** data)
         {
-            fprintf(stderr, "%sunknown section [%s]\n", prefix, name);
+            fprintf(stderr, "%sunknown section [%.*s]\n", prefix, (int)length, name);
             unknown++;
+            return 0;
         }
-        ini_map_for(map, sec_iter);
+        table_for(root, sec_iter);
         if (unknown) {
-            ini_map_free(map);
+            ini_table_free(root);
             return 1;
         }
     }
 
-    ini_map_free(map);
+    ini_table_free(root);
     return 0;
 }
 

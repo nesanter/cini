@@ -18,6 +18,7 @@
 #ifndef PEARSON_H
 #define PEARSON_H
 
+#include <stddef.h>
 #include <stdint.h>
 
 struct pearson_data {
@@ -31,6 +32,6 @@ uint8_t pearson(
     const struct pearson_data * pearson_data,
     size_t nth,
     const uint8_t * data,
-    size_t data_length)
+    size_t data_length);
 
 #endif /* PEARSON_H */

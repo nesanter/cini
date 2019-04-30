@@ -55,6 +55,7 @@ void test_print_events()
     free(line);
 }
 
+/*
 void test_print_map(FILE * f)
 {
     void * base = NULL;
@@ -134,17 +135,17 @@ int test_builtin()
     ini_map_free(map);
     return 0;
 }
-
+*/
 
 static int inc = 0;
 
-static int opt_print(void * data, const char * key, const char * value)
+static int opt_print(const char * key, const char * value, void * data)
 {
     printf("%s %s = %s\n", (char*)data, key, value);
     return 0;
 }
 
-static int opt_print2(void * data, const char * key, const char * value)
+static int opt_print2(const char * key, const char * value, void * data)
 {
     printf("%d %s = %s\n", inc++, key, value);
     return 0;
@@ -154,15 +155,15 @@ int main(int argc, char ** argv)
 {
     return ini_handle(
             stdin,
-            "test",
+            "test: ",
             STRICT,
             "", REQUIRED | STRICT,
-                "foo", OPTIONAL, opt_print,
-                "bar", SKIP, opt_print,
+                "foo", OPTIONAL, opt_print, "test",
+                "bar", SKIP, opt_print, "test2",
                 NULL,
             "test", SKIP | STRICT,
-                "pants", REQUIRED, opt_print2,
-                "geeg", SKIP, opt_print2,
+                "pants", REQUIRED, opt_print2, NULL,
+                "geeg", SKIP, opt_print2, NULL,
                 NULL,
             NULL
         );

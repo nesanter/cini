@@ -17,6 +17,7 @@
  */
 #include "ini.h"
 #include "map.h"
+#include "table/table.h"
 
 #include <stdbool.h>
 #include <stdio.h>
@@ -46,28 +47,31 @@ static struct {
     0
 };
 
-void map_out(struct ini_map_root * map, FILE * f) {
-    void key_iter(const char * key, char ** value) {
-        fprintf(f, "%s = %s\n", key, *value);
+void table_out(struct table * table, FILE * f) {
+    int key_iter(const uint8_t * key, size_t length, void ** value)
+    {
+        fprintf(f, "%.*s = %s\n", (int)length, (char *)key, (*(struct ini_entry **)value)->data);
+        return 0;
     }
 
-    void sec_iter(const char * name, struct ini_map_section * sec)
+    int sec_iter(const uint8_t * key, size_t length, void ** value)
     {
-        if (name[0]) {
-            fprintf(f, "[%s]\n", name);
+        if (length > 0) {
+            fprintf(f, "[%.*s]\n", (int)length, key);
         } else if (args.default_section) {
             fprintf(f, "[%s]\n", args.default_section);
         }
-        ini_map_section_for(sec, key_iter);
+        table_for(*(struct table **)value, key_iter);
         fprintf(f, "\n");
+        return 0;
     }
 
-    ini_map_for(map, sec_iter);
+    table_for(table, sec_iter);
 }
 
 static error_t parse_opt(int key, char * arg, struct argp_state * state)
 {
-    struct ini_map_root * map = state->input;
+    struct table * table = *(struct table **)state->input;
     FILE * in;
     switch (key) {
         case 'o': // out
@@ -96,18 +100,18 @@ static error_t parse_opt(int key, char * arg, struct argp_state * state)
             if (!in) {
                 argp_failure(state, 1, errno, "error opening %s for reading", arg);
             }
-            ini_map_read(map, in);
+            ini_table_read(in, table);
             fclose(in);
             break;
         case ARGP_KEY_NO_ARGS:
-            ini_map_read(map, stdin);
+            ini_table_read(stdin, table);
             break;
         case ARGP_KEY_SUCCESS:
             if (args.out) {
-                map_out(map, args.out);
+                table_out(table, args.out);
                 fclose(args.out);
             } else {
-                map_out(map, stdout);
+                table_out(table, stdout);
             }
             break;
         default:
@@ -118,9 +122,6 @@ static error_t parse_opt(int key, char * arg, struct argp_state * state)
 
 int main(int argc, char ** argv)
 {
-    void * base = NULL;
-    struct ini_map_root * map = ini_map_create(base);
-
     static struct argp argp = {
         .options = options,
         .parser = &parse_opt,
@@ -128,9 +129,11 @@ int main(int argc, char ** argv)
         .doc = doc
     };
 
-    argp_parse(&argp, argc, argv, 0, 0, map);
+    struct table * table = table_alloc();
 
-    ini_map_free(map);
+    argp_parse(&argp, argc, argv, 0, 0, &table);
+
+    ini_table_free(table);
 
     return 0;
 }

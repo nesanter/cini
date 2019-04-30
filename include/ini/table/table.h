@@ -19,11 +19,12 @@
 #define TABLE_H
 
 #include <stdint.h>
+#include <stddef.h>
 
 #define TABLE_INIT (struct table *)(0);
 
 struct table;
-typedef int (*table_iterator_t)(const uint8_t *, void **);
+typedef int (*table_iterator_t)(const uint8_t *, size_t, void **);
 
 void ** table_get(
     struct table * table,
@@ -35,17 +36,16 @@ void ** table_ensure(
     const uint8_t * key,
     size_t length);
 
-void ** table_pop(
+void * table_pop(
     struct table * table,
     const uint8_t * key,
     size_t length);
 
-void table_alloc(
-    struct table * table);
+struct table * table_alloc();
 
 void table_free(
     struct table * table,
-    table_iterator iterator);
+    table_iterator_t iterator);
 
 int table_for(
     struct table * table,

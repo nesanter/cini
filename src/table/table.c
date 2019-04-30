@@ -15,14 +15,15 @@
  * You should have received a copy of the GNU General Public License
  * along with cini.  If not, see <https://www.gnu.org/licenses/>.
  */
-#include "hash/hash.h"
-#include "hash/pearson.h"
+#include "table/table.h"
+#include "table/pearson.h"
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 struct entry {
-    const uint8_t * leaf_key;
+    uint8_t * leaf_key;
     size_t leaf_length;
     void * leaf_data;
     struct table * nested;
@@ -33,11 +34,11 @@ struct table {
     struct entry entries[256];
 };
 
-void table_alloc(
-    struct table * table)
+struct table * table_alloc()
 {
-    *table = calloc(1, sizeof(*table));
+    struct table * table = calloc(1, sizeof(*table));
     pearson_init(&table->pearson_data);
+    return table;
 }
 
 void ** table_get(
@@ -79,10 +80,14 @@ static void ** table_ensure_n(
                 !memcmp(entry->leaf_key, key, length)) {
                 return &entry->leaf_data;
             } else {
-                table_alloc(entry->nested);
+#ifndef NDEBUG
+                fprintf(stderr, "growing table [%zu]\n", nth);
+#endif
+                entry->nested = table_alloc();
                 *table_ensure_n(
                     entry->nested, entry->leaf_key, entry->leaf_length, nth) =
                     entry->leaf_data;
+                //free(entry->leaf_key);
                 entry->leaf_key = NULL;
                 entry->leaf_length = 0;
                 entry->leaf_data = NULL;
@@ -91,7 +96,7 @@ static void ** table_ensure_n(
             }
         } else {
             entry->leaf_key = malloc(length);
-            memcpy(entry->key, key, length);
+            memcpy(entry->leaf_key, key, length);
             entry->leaf_length = length;
             return &entry->leaf_data;
         }
@@ -120,6 +125,7 @@ void * table_pop(
             if (entry->leaf_length == length &&
                 !memcmp(entry->leaf_key, key, length)) {
                 void * data = entry->leaf_data;
+                free(entry->leaf_key);
                 entry->leaf_key = NULL;
                 entry->leaf_length = 0;
                 entry->leaf_data = NULL;
@@ -133,13 +139,6 @@ void * table_pop(
     }
 }
 
-static void entry_for(
-    struct table * table,
-    int (iterator)(struct entry * entry))
-{
-
-}
-
 void table_free(
     struct table * table,
     table_iterator_t iterator)
@@ -149,7 +148,10 @@ void table_free(
         if (entry->nested) {
             table_free(entry->nested, iterator);
         } else if (entry->leaf_key) {
-            iterator(entry);
+            if (iterator) {
+                iterator(entry->leaf_key, entry->leaf_length, &entry->leaf_data);
+            }
+            free(entry->leaf_key);
         }
     }
     free(table);
@@ -164,7 +166,9 @@ int table_for(
         if (entry->nested) {
             table_for(entry->nested, iterator);
         } else if (entry->leaf_key) {
-            iterator(entry);
+            int res = iterator(entry->leaf_key, entry->leaf_length, &entry->leaf_data);
+            if (res) return res;
         }
     }
+    return 0;
 }
