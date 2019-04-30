@@ -46,7 +46,7 @@ build ini-merge: bin out/reduce.o out/ini.o out/map.o out/table/table.o out/tabl
 build ini-tojson: bin out/tojson.o out/ini.o out/map.o out/handle.o out/table/pearson.o out/table/table.o | active.gen.ninja
   libs = $libs -ljansson
 
-build test_table: bin out/table/table_test.o out/table/table.o out/table/pearson.o out/ini.o out/map.o | active.gen.ninja
+#build test_table: bin out/table/table_test.o out/table/table.o out/table/pearson.o out/ini.o out/map.o | active.gen.ninja
 
 build libini.so: so out/ini.o out/map.o out/handle.o out/table/table.o out/table/pearson.o | active.gen.ninja
 
