@@ -52,7 +52,7 @@ build libini.so: so out/ini.o out/map.o out/handle.o out/table/table.o out/table
 
 # ...toplevel
 build tools: phony ini-merge ini-tojson
-build all: phony test tools libini.so test_table
+build all: phony test tools libini.so
 default all
 
 # ...packaging
