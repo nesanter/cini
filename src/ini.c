@@ -24,7 +24,7 @@ void ini_parse_line(
 {
     line_t * end = &line[length - 1];
     // strip leading space
-    for (; *line == ' ' || *line == '\t'; line++);
+    for (; *line == ' ' || *line == '\t' || *line == '\n'; line++);
     // strip trailing space
     for (; end > line && (*end == ' ' || *end == '\t' || *end == '\n'); end--);
     // empty?
@@ -80,7 +80,7 @@ void ini_parse_line(
     *ev = (struct ini_event) {
         .kind = INI_EVENT_KEY_ONLY,
         .args = { line },
-        .length = { end - line }
+        .length = { end - line + 1 }
     };
     return;
 }
