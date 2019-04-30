@@ -38,7 +38,7 @@ build out/test.o: cc src/test.c | active.gen.ninja
 
 build out/table/table.o: cc src/table/table.c | active.gen.ninja
 build out/table/pearson.o: cc src/table/pearson.c | active.gen.ninja
-build out/table/table_test.o: cc src/table/table_test.c | active.gen.ninja
+#build out/table/table_test.o: cc src/table/table_test.c | active.gen.ninja
 
 # ...outputs
 build test: bin out/test.o out/ini.o out/map.o out/handle.o out/table/table.o out/table/pearson.o | active.gen.ninja
