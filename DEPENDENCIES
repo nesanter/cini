@@ -1,0 +1,7 @@
+Linux:
+ - GNU argp for tools
+ - getline if NO_SYSTEM_GETLINE not defined
+ - jansson for ini-tojson [github.com/akheron/jansson]
+
+w64 (with NO_SYSTEM_GETLINE): none (when tools are not built)
+
