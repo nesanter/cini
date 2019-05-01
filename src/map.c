@@ -26,6 +26,39 @@
 #include "map.h"
 #include "table/table.h"
 
+#ifdef NO_SYSTEM_GETLINE
+
+#define GROW_INCREMENT (1024)
+static size_t ini_getline(char ** bufout, size_t * szout, FILE * file)
+{
+    uint8_t * buf = (uint8_t *)*bufout;
+    size_t i, sz = *szout;
+    for (i = 0; ; i++) {
+        if (i >= sz) {
+            sz += GROW_INCREMENT;
+            buf = realloc(buf, sz);
+        }
+        int c = fgetc(file);
+        if (c == EOF) {
+            if (i == 0) return -1;
+            break;
+        }
+        buf[i] = (uint8_t)c;
+        if (c == '\n') {
+            break;
+        }
+    }
+    *szout = sz;
+    *bufout = (char *)buf;
+    return i;
+}
+
+#else
+
+#define ini_getline getline
+
+#endif /* NO_SYSTEM_GETLINE */
+
 struct table * ini_table_read(FILE * file, struct table * table)
 {
     if (!table) {
@@ -42,7 +75,7 @@ struct table * ini_table_read(FILE * file, struct table * table)
         *secp = table_alloc();
     }
 
-    while ((length = getline(&line, &n, file)) != -1) {
+    while ((length = ini_getline(&line, &n, file)) != -1) {
         ini_parse_line(line, length, &ev);
         switch (ev.kind) {
             case INI_EVENT_NONE:
