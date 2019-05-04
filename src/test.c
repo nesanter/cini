@@ -1,17 +1,17 @@
 /* Copyright © 2019 Noah Santer <personal@mail.mossy-tech.com>
  *
  * This file is part of cini.
- * 
+ *
  * cini is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * cini is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with cini.  If not, see <https://www.gnu.org/licenses/>.
  */
@@ -156,16 +156,15 @@ int main(int argc, char ** argv)
     return ini_handle(
             stdin,
             "test: ",
-            STRICT,
-            "", REQUIRED | STRICT,
-                "foo", OPTIONAL, opt_print, "test",
-                "bar", SKIP, opt_print, "test2",
+            INI_STRICT,
+            "", INI_REQUIRED | INI_STRICT,
+                "foo", INI_OPTIONAL, opt_print, "test",
+                "bar", INI_SKIP, opt_print, "test2",
                 NULL,
-            "test", SKIP | STRICT,
-                "pants", REQUIRED, opt_print2, NULL,
-                "geeg", SKIP, opt_print2, NULL,
+            "test", INI_SKIP | INI_STRICT,
+                "pants", INI_REQUIRED, opt_print2, NULL,
+                "geeg", INI_SKIP, opt_print2, NULL,
                 NULL,
             NULL
         );
 }
-

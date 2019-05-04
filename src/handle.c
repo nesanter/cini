@@ -1,17 +1,17 @@
 /* Copyright © 2019 Noah Santer <personal@mail.mossy-tech.com>
  *
  * This file is part of cini.
- * 
+ *
  * cini is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * cini is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with cini.  If not, see <https://www.gnu.org/licenses/>.
  */
@@ -51,13 +51,13 @@ int ini_vhandle(FILE * file, const char * prefix, enum ini_handle_opt root_opts,
         //struct ini_map_section * section = ini_map_get_section(map, name);
         struct table * section = table_pop(root, (uint8_t*)name, strlen(name));
         if (!section) {
-            if (opts & REQUIRED) {
+            if (opts & INI_REQUIRED) {
                 fprintf(stderr, "%smissing required section [%s]\n", prefix, name);
                 //ini_map_free(map);
                 ini_table_free(root);
                 return 1;
             }
-            if (opts & SKIP) {
+            if (opts & INI_SKIP) {
                 for (;;) {
                     const char * key = va_arg(args, const char *);
                     if (!key) break;
@@ -82,7 +82,7 @@ int ini_vhandle(FILE * file, const char * prefix, enum ini_handle_opt root_opts,
                 value = table_pop(section, (uint8_t*)key, strlen(key));
             }
             if (!value) {
-                if (key_opts & REQUIRED) {
+                if (key_opts & INI_REQUIRED) {
                     if (!section) {
                         continue;
                     }
@@ -94,7 +94,7 @@ int ini_vhandle(FILE * file, const char * prefix, enum ini_handle_opt root_opts,
                     ini_table_free(root);
                     return 1;
                 }
-                if (key_opts & SKIP) {
+                if (key_opts & INI_SKIP) {
                     continue;
                 }
                 if (action) {
@@ -120,7 +120,7 @@ int ini_vhandle(FILE * file, const char * prefix, enum ini_handle_opt root_opts,
             }
         }
 
-        if (opts & STRICT) {
+        if (opts & INI_STRICT) {
             int unknown = 0;
             int key_iter(const uint8_t * key, size_t length, void ** value)
             {
@@ -147,7 +147,7 @@ int ini_vhandle(FILE * file, const char * prefix, enum ini_handle_opt root_opts,
         */
     }
 
-    if (root_opts & STRICT) {
+    if (root_opts & INI_STRICT) {
         int unknown = 0;
         int sec_iter(const uint8_t * name, size_t length, void ** data)
         {
@@ -165,4 +165,3 @@ int ini_vhandle(FILE * file, const char * prefix, enum ini_handle_opt root_opts,
     ini_table_free(root);
     return 0;
 }
-
