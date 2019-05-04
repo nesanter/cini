@@ -165,3 +165,67 @@ int ini_vhandle(FILE * file, const char * prefix, enum ini_handle_opt root_opts,
     ini_table_free(root);
     return 0;
 }
+
+int ini_handle_table(struct table * table, const char * prefix, enum ini_handle_opt opts, ...)
+{
+    va_list args;
+    va_start(args, opts);
+
+    int r = ini_vhandle_table(table, prefix, opts, args);
+
+    va_end(args);
+
+    return r;
+}
+
+int ini_vhandle_table(struct table * table, const char * prefix, enum ini_handle_opt opts, va_list args)
+{
+    const char * key;
+    int r;
+    while ((key = va_arg(args, const char *))) {
+        enum ini_handle_opt key_opts = va_arg(args, enum ini_handle_opt);
+        ini_handle_fn action = va_arg(args, ini_handle_fn);
+        void * data = va_arg(args, void *);
+        struct ini_entry * value = NULL;
+        value = table_pop(table, (const uint8_t *)key, strlen(key));
+        if (!value) {
+            if (key_opts & INI_REQUIRED) {
+                fprintf(stderr, "%smissing required key %s\n", prefix, key);
+                return 1;
+            }
+            if (key_opts & INI_SKIP) {
+                continue;
+            }
+            if (action) {
+                if ((r = action(key, NULL, data))) {
+                    return r;
+                }
+            }
+        } else {
+            if (action) {
+                if ((r = action(key, (const char*)value->data, data))) {
+                    free(value);
+                    return r;
+                }
+                free(value);
+            }
+        }
+    }
+
+    if (opts & INI_STRICT) {
+        int unknown = 0;
+        int key_iter(const uint8_t * key, size_t length, void ** value)
+        {
+            fprintf(stderr, "%sunknown key %.*s\n", prefix, (int)length, key);
+            unknown++;
+            return 0;
+        }
+        table_for(table, key_iter);
+        if (unknown) {
+            return 1;
+        }
+    }
+    return 0;
+}
+
+
