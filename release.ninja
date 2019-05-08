@@ -1,2 +1,2 @@
-cflags = $baseflags -O2 -Werror -DNDEBUG
-version = master
+cflags = $cflags -O2 -Werror -DNDEBUG $$CFLAGS
+version = $$VERSION

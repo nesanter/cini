@@ -15,14 +15,14 @@
 # You should have received a copy of the GNU General Public License
 # along with pin-utils.  If not, see <https://www.gnu.org/licenses/>.
 
-prefix = /usr/local
-baseflags = -Wall -flto -Iinclude/ini
+builddir = out
+cflags = -Wall -flto -fdiagnostics-color -Iinclude/ini
 sanflags = -fsanitize=address,undefined
-libs = 
+libs =
 
 include active.gen.ninja
 
-defines = -DVERSION="\"$version\"" $defines
+defines = -DVERSION="\"$version\"" $$DEFINES
 
 rule cc
   deps = gcc
@@ -39,33 +39,36 @@ rule so
   depfile = $out.d
   command = gcc -MMD -MF $out.d -fPIC $cflags $defines -shared $in -o $out
 
-rule no-ninja
-  command = ninja -t commands > $out
-
 rule archive
   command = git archive -o $out HEAD
 
 # ...sources
-build out/ini.o: cc src/ini.c | active.gen.ninja
-build out/map.o: cc src/map.c | active.gen.ninja
-build out/handle.o: cc src/handle.c | active.gen.ninja
-build out/tojson.o: cc src/tojson.c | active.gen.ninja
-build out/reduce.o: cc src/reduce.c | active.gen.ninja
-build out/test.o: cc src/test.c | active.gen.ninja
+build out/ini.o:            cc src/ini.c
+build out/map.o:            cc src/map.c
+build out/handle.o:         cc src/handle.c
+build out/tojson.o:         cc src/tojson.c
+build out/reduce.o:         cc src/reduce.c
+build out/test.o:           cc src/test.c
 
-build out/table/table.o: cc src/table/table.c | active.gen.ninja
-build out/table/pearson.o: cc src/table/pearson.c | active.gen.ninja
-#build out/table/table_test.o: cc src/table/table_test.c | active.gen.ninja
+build out/table/table.o:    cc src/table/table.c
+build out/table/pearson.o:  cc src/table/pearson.c
 
 # ...outputs
-build test: bin out/test.o out/ini.o out/map.o out/handle.o out/table/table.o out/table/pearson.o | active.gen.ninja
-build ini-merge: bin out/reduce.o out/ini.o out/map.o out/table/table.o out/table/pearson.o | active.gen.ninja
-build ini-tojson: bin out/tojson.o out/ini.o out/map.o out/handle.o out/table/pearson.o out/table/table.o | active.gen.ninja
+#build test: bin out/test.o out/ini.o out/map.o out/handle.o out/table/table.o out/table/pearson.o
+#build test_table: bin out/table/table_test.o out/table/table.o out/table/pearson.o out/ini.o out/map.o
+
+build ini-merge:    bin $
+    out/reduce.o out/ini.o out/map.o $
+    out/table/table.o out/table/pearson.o
+
+build ini-tojson:   bin $
+    out/tojson.o out/ini.o out/map.o $
+    out/table/pearson.o out/table/table.o
   libs = $libs -ljansson
 
-build test_table: bin out/table/table_test.o out/table/table.o out/table/pearson.o out/ini.o out/map.o | active.gen.ninja
-
-build libini.so: so out/ini.o out/map.o out/handle.o out/table/table.o out/table/pearson.o | active.gen.ninja
+build libini.so:    so $
+    out/ini.o out/map.o out/handle.o $
+    out/table/table.o out/table/pearson.o
 
 # ...toplevel
 build tools: phony ini-merge ini-tojson
@@ -73,5 +76,5 @@ build all: phony test tools libini.so
 default all
 
 # ...packaging
-build dist: phony pkg/no-ninja
-build pkg/no-ninja: no-ninja | active.gen.ninja
+#build dist: phony pkg/build.sh
+#build pkg/no-ninja: no-ninja | active.gen.ninja
