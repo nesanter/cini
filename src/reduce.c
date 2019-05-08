@@ -17,7 +17,7 @@
  */
 #include "ini.h"
 #include "map.h"
-#include "table/table.h"
+#include "table.h"
 
 #include <stdbool.h>
 #include <stdio.h>
@@ -100,11 +100,11 @@ static error_t parse_opt(int key, char * arg, struct argp_state * state)
             if (!in) {
                 argp_failure(state, 1, errno, "error opening %s for reading", arg);
             }
-            ini_table_read(in, table);
+            ini_table_read(table, in);
             fclose(in);
             break;
         case ARGP_KEY_NO_ARGS:
-            ini_table_read(stdin, table);
+            ini_table_read(table, stdin);
             break;
         case ARGP_KEY_SUCCESS:
             if (args.out) {

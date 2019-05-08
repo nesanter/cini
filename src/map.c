@@ -16,15 +16,16 @@
  * along with cini.  If not, see <https://www.gnu.org/licenses/>.
  */
 #include "ini.h"
+
+#include "map.h"
+#include "table.h"
+
 #include <string.h>
 #include <assert.h>
 
 #include <string.h>
 #include <stdlib.h>
 #include <stdint.h>
-
-#include "map.h"
-#include "table/table.h"
 
 #ifdef NO_SYSTEM_GETLINE
 
@@ -59,7 +60,7 @@ static size_t ini_getline(char ** bufout, size_t * szout, FILE * file)
 
 #endif /* NO_SYSTEM_GETLINE */
 
-struct table * ini_table_read(FILE * file, struct table * table)
+struct table * ini_table_read(struct table * table, FILE * file)
 {
     if (!table) {
         table = table_alloc();

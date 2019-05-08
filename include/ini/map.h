@@ -18,16 +18,45 @@
 #ifndef INI_MAP_H
 #define INI_MAP_H
 
+/* the following library routines connect INI functionality
+ * to the table functionality in table.h
+ *
+ * they are implemented by nesting table structures such that
+ * the toplevel table (representing the set of sections) has
+ * values that are the tables for each section.
+ *
+ * the section tables have values of type struct ini_entry to facilitate
+ * the INI requirement of length-bound, potentionally null-containing values.
+ *
+ * the zero-length toplevel key is the global table.
+ *
+ * the ini_XXX_free functions provided here are simplifications
+ * of the general table_free function and in fact wrap that function
+ * with pre-made callbacks to free the data allocated by ini_table_read
+ */
+
 #include <stdio.h>
 #include <stdint.h>
 
+/** value type of section tables */
 struct ini_entry {
     size_t length;
     uint8_t data[];
 };
 
-struct table * ini_table_read(FILE * file, struct table * table);
+/** read INI data from file and store it in table
+ *
+ *  table is allocated if NULL and the fresh table is returned,
+ *  otherwise the return value is the table argument
+ */
+struct table * ini_table_read(
+        struct table * table,
+        FILE * file);
+
+/** free both levels of table **/
 void ini_table_free(struct table * table);
+
+/** free only a section table **/
 void ini_section_free(struct table * table);
 
 #endif /* INI_MAP_H */

@@ -17,7 +17,7 @@
  */
 #include "map.h"
 #include "opts.h"
-#include "table/table.h"
+#include "table.h"
 #include <stdlib.h>
 #include <string.h>
 
@@ -40,7 +40,7 @@ int ini_vhandle(FILE * file, const char * prefix, enum ini_handle_opt root_opts,
     struct ini_map_root * map = ini_map_create(base);
     ini_map_read(map, file);
     */
-    struct table * root = ini_table_read(file, NULL);
+    struct table * root = ini_table_read(NULL, file);
 
     const char * name;
     const char * key;

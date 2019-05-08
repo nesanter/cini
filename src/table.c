@@ -15,12 +15,14 @@
  * You should have received a copy of the GNU General Public License
  * along with cini.  If not, see <https://www.gnu.org/licenses/>.
  */
-#include "table/table.h"
-#include "table/pearson.h"
+#include "table.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+#define PEARSON_LENGTH 256
+#define PEARSON_MASK 0xFF
 
 struct entry {
     uint8_t * leaf_key;
@@ -30,9 +32,38 @@ struct entry {
 };
 
 struct table {
-    struct pearson_data pearson_data;
+    struct pearson_data {
+        uint8_t data[256];
+    } pearson_data;
     struct entry entries[256];
 };
+
+static void pearson_init(
+    struct pearson_data * pearson_data)
+{
+    for (size_t i = 0; i < PEARSON_LENGTH; i++) {
+        pearson_data->data[i] = (uint8_t)i;
+    }
+    for (size_t i = 0; i < PEARSON_LENGTH; i++) {
+        size_t j = rand() & PEARSON_MASK;
+        uint8_t tmp = pearson_data->data[i];
+        pearson_data->data[i] = pearson_data->data[j];
+        pearson_data->data[j] = tmp;
+    }
+}
+
+static uint8_t pearson(
+    const struct pearson_data * pearson_data,
+    size_t nth,
+    const uint8_t * data,
+    size_t data_length)
+{
+    uint8_t x = pearson_data->data[(data[0] + nth) & PEARSON_MASK];
+    for (size_t dn = 1; dn < data_length; dn++) {
+        x = pearson_data->data[x ^ data[dn]];
+    }
+    return x;
+}
 
 struct table * table_alloc()
 {

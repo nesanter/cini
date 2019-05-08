@@ -16,7 +16,8 @@
 # along with pin-utils.  If not, see <https://www.gnu.org/licenses/>.
 
 builddir = out
-cflags = -Wall -flto -fdiagnostics-color -Iinclude/ini
+cflags = -Wall -D_FORTIFY_SOURCE=1 -flto -fdiagnostics-color -Iinclude/ini $$CFLAGS
+ldflags = $$LDFLAGS
 sanflags = -fsanitize=address,undefined
 libs =
 
@@ -32,7 +33,7 @@ rule cc
 rule bin
   deps = gcc
   depfile = $out.d
-  command = gcc -MMD -MF $out.d $cflags $defines $in -o $out $libs
+  command = gcc -MMD -MF $out.d $cflags $defines $in -o $out $ldflags $libs
 
 rule so
   deps = gcc
@@ -49,26 +50,21 @@ build out/handle.o:         cc src/handle.c
 build out/tojson.o:         cc src/tojson.c
 build out/reduce.o:         cc src/reduce.c
 build out/test.o:           cc src/test.c
-
-build out/table/table.o:    cc src/table/table.c
-build out/table/pearson.o:  cc src/table/pearson.c
+build out/table.o:          cc src/table.c
 
 # ...outputs
 #build test: bin out/test.o out/ini.o out/map.o out/handle.o out/table/table.o out/table/pearson.o
 #build test_table: bin out/table/table_test.o out/table/table.o out/table/pearson.o out/ini.o out/map.o
 
 build ini-merge:    bin $
-    out/reduce.o out/ini.o out/map.o $
-    out/table/table.o out/table/pearson.o
+    out/reduce.o out/ini.o out/map.o out/table.o
 
 build ini-tojson:   bin $
-    out/tojson.o out/ini.o out/map.o $
-    out/table/pearson.o out/table/table.o
+    out/tojson.o out/ini.o out/map.o out/table.o
   libs = $libs -ljansson
 
 build libini.so:    so $
-    out/ini.o out/map.o out/handle.o $
-    out/table/table.o out/table/pearson.o
+    out/ini.o out/map.o out/handle.o out/table.o
 
 # ...toplevel
 build tools: phony ini-merge ini-tojson
