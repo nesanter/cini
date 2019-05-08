@@ -21,7 +21,7 @@
 #include <stdarg.h>
 #include <stdio.h>
 
-#include "ini/table/table.h"
+#include "ini/table.h"
 
 enum ini_handle_opt {
     INI_OPTIONAL      = 0,
