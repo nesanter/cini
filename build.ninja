@@ -38,7 +38,7 @@ rule bin
 rule so
   deps = gcc
   depfile = $out.d
-  command = gcc -MMD -MF $out.d -fPIC $cflags $defines -shared $in -o $out
+  command = gcc -MMD -MF $out.d -fPIC $cflags $defines -shared $in -o $out $ldflags
 
 rule archive
   command = git archive -o $out HEAD
