@@ -71,7 +71,7 @@ struct table * ini_table_read(struct table * table, FILE * file)
     struct ini_event ev;
 
     struct ini_entry ** valp;
-    struct table ** secp = (struct table**)table_ensure(table, (uint8_t *)"", 0);
+    struct table ** secp = (struct table**)table_ensure(table, (uint8_t *)"\0", 0);
     if (!*secp) {
         *secp = table_alloc();
     }

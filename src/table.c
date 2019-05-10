@@ -18,187 +18,119 @@
 #include "table.h"
 
 #include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 
-#define PEARSON_LENGTH 256
-#define PEARSON_MASK 0xFF
-
-struct entry {
-    uint8_t * leaf_key;
-    size_t leaf_length;
-    void * leaf_data;
-    struct table * nested;
-};
-
-struct table {
-    struct pearson_data {
-        uint8_t data[256];
-    } pearson_data;
-    struct entry entries[256];
-};
-
-static void pearson_init(
-    struct pearson_data * pearson_data)
-{
-    for (size_t i = 0; i < PEARSON_LENGTH; i++) {
-        pearson_data->data[i] = (uint8_t)i;
-    }
-    for (size_t i = 0; i < PEARSON_LENGTH; i++) {
-        size_t j = rand() & PEARSON_MASK;
-        uint8_t tmp = pearson_data->data[i];
-        pearson_data->data[i] = pearson_data->data[j];
-        pearson_data->data[j] = tmp;
-    }
-}
-
-static uint8_t pearson(
-    const struct pearson_data * pearson_data,
-    size_t nth,
-    const uint8_t * data,
-    size_t data_length)
-{
-    uint8_t x = pearson_data->data[(data[0] + nth) & PEARSON_MASK];
-    for (size_t dn = 1; dn < data_length; dn++) {
-        x = pearson_data->data[x ^ data[dn]];
-    }
-    return x;
-}
+#include <lua5.1/lua.h>
+#include <lua5.1/lauxlib.h>
 
 struct table * table_alloc()
 {
-    struct table * table = calloc(1, sizeof(*table));
-    pearson_init(&table->pearson_data);
-    return table;
+    lua_State * L = luaL_newstate();
+    return (struct table *)(void *)L;
 }
 
 void ** table_get(
-    struct table * table,
-    const uint8_t * key,
-    size_t length)
+        struct table * table,
+        const uint8_t * key,
+        size_t length)
 {
-    for (size_t nth = 0; ; nth++) {
-        uint8_t x = pearson(&table->pearson_data, nth, key, length);
-        struct entry * entry = &table->entries[x];
-        if (entry->nested) {
-            table = entry->nested;
-        } else if (entry->leaf_key) {
-            if (entry->leaf_length == length &&
-                !memcmp(entry->leaf_key, key, length)) {
-                return &entry->leaf_data;
-            } else {
-                return NULL;
-            }
-        } else {
-            return NULL;
-        }
-    }
-}
-
-static void ** table_ensure_n(
-    struct table * table,
-    const uint8_t * key,
-    size_t length,
-    size_t nth_start)
-{
-    for (size_t nth = nth_start; ; nth++) {
-        uint8_t x = pearson(&table->pearson_data, nth, key, length);
-        struct entry * entry = &table->entries[x];
-        if (entry->nested) {
-            table = entry->nested;
-        } else if (entry->leaf_key) {
-            if (entry->leaf_length == length &&
-                !memcmp(entry->leaf_key, key, length)) {
-                return &entry->leaf_data;
-            } else {
-#ifndef NDEBUG
-                fprintf(stderr, "growing table [%zu]\n", nth);
-#endif
-                entry->nested = table_alloc();
-                *table_ensure_n(
-                    entry->nested, entry->leaf_key, entry->leaf_length, nth) =
-                    entry->leaf_data;
-                //free(entry->leaf_key);
-                entry->leaf_key = NULL;
-                entry->leaf_length = 0;
-                entry->leaf_data = NULL;
-                return table_ensure_n(
-                    entry->nested, key, length, nth);
-            }
-        } else {
-            entry->leaf_key = malloc(length);
-            memcpy(entry->leaf_key, key, length);
-            entry->leaf_length = length;
-            return &entry->leaf_data;
-        }
-    }
+    lua_State * L = (lua_State *)(void *)table;
+    lua_pushlstring(L, (const char *)key, length);
+    lua_gettable(L, LUA_GLOBALSINDEX);
+    void ** v = lua_touserdata(L, -1);
+    lua_pop(L, 1);
+    return v;
 }
 
 void ** table_ensure(
-    struct table * table,
-    const uint8_t * key,
-    size_t length)
+        struct table * table,
+        const uint8_t * key,
+        size_t length)
 {
-    return table_ensure_n(table, key, length, 0);
+    lua_State * L = (lua_State *)(void *)table;
+    lua_pushlstring(L, (const char *)key, length);
+    lua_pushvalue(L, -1);
+    lua_gettable(L, LUA_GLOBALSINDEX);
+    if (lua_isnil(L, -1)) {
+        lua_pop(L, 1);
+        void ** v = lua_newuserdata(L, sizeof(*v));
+        *v = NULL;
+        lua_settable(L, LUA_GLOBALSINDEX);
+        return v;
+    } else {
+        void ** v = lua_touserdata(L, -1);
+        lua_pop(L, 2);
+        return v;
+    }
 }
 
 void * table_pop(
-    struct table * table,
-    const uint8_t * key,
-    size_t length)
+        struct table * table,
+        const uint8_t * key,
+        size_t length)
 {
-    for (size_t nth = 0; ; nth++) {
-        uint8_t x = pearson(&table->pearson_data, nth, key, length);
-        struct entry * entry = &table->entries[x];
-        if (entry->nested) {
-            table = entry->nested;
-        } else if (entry->leaf_key) {
-            if (entry->leaf_length == length &&
-                !memcmp(entry->leaf_key, key, length)) {
-                void * data = entry->leaf_data;
-                free(entry->leaf_key);
-                entry->leaf_key = NULL;
-                entry->leaf_length = 0;
-                entry->leaf_data = NULL;
-                return data;
-            } else {
-                return NULL;
-            }
-        } else {
-            return NULL;
-        }
+    lua_State * L = (lua_State *)table;
+    lua_pushlstring(L, (const char *)key, length);
+    lua_pushvalue(L, -1);
+    lua_gettable(L, LUA_GLOBALSINDEX);
+    if (lua_isnil(L, -1)) {
+        lua_pop(L, 2);
+        return NULL;
+    }
+    void ** v = lua_touserdata(L, -1);
+    lua_pop(L, 1);
+    if (v) {
+        lua_pushnil(L);
+        lua_settable(L, LUA_GLOBALSINDEX);
+        return *v;
+    } else {
+        return NULL;
     }
 }
 
 void table_free(
-    struct table * table,
-    table_iterator_t iterator)
+        struct table * table,
+        table_iterator_t iterator)
 {
-    for (size_t i = 0; i < 256; i++) {
-        struct entry * entry = &table->entries[i];
-        if (entry->nested) {
-            table_free(entry->nested, iterator);
-        } else if (entry->leaf_key) {
-            if (iterator) {
-                iterator(entry->leaf_key, entry->leaf_length, &entry->leaf_data);
+    lua_State * L = (lua_State *)table;
+    lua_pushnil(L);
+    while (lua_next(L, LUA_GLOBALSINDEX) != 0) {
+        if (lua_type(L, -2) == LUA_TSTRING) {
+            void ** v = lua_touserdata(L, -1);
+            if (v) {
+                size_t length;
+                const char * k = lua_tolstring(L, -2, &length);
+                if (iterator) {
+                    iterator((const uint8_t *)k, length, v);
+                }
+                lua_pushvalue(L, -2);
+                lua_pushnil(L);
+                lua_settable(L, LUA_GLOBALSINDEX);
             }
-            free(entry->leaf_key);
+            lua_pop(L, 1);
         }
     }
-    free(table);
+    lua_close(L);
 }
 
 int table_for(
-    struct table * table,
-    table_iterator_t iterator)
+        struct table * table,
+        table_iterator_t iterator)
 {
-    for (size_t i = 0; i < 256; i++) {
-        struct entry * entry = &table->entries[i];
-        if (entry->nested) {
-            table_for(entry->nested, iterator);
-        } else if (entry->leaf_key) {
-            int res = iterator(entry->leaf_key, entry->leaf_length, &entry->leaf_data);
-            if (res) return res;
+    lua_State * L = (lua_State *)table;
+    lua_pushnil(L);
+    while (lua_next(L, LUA_GLOBALSINDEX) != 0) {
+        if (lua_type(L, -2) == LUA_TSTRING) {
+            void ** v = lua_touserdata(L, -1);
+            if (v) {
+                size_t length;
+                const char * k = lua_tolstring(L, -2, &length);
+                int res = iterator((const uint8_t *)k, length, v);
+                if (res) {
+                    lua_pop(L, 2);
+                    return res;
+                }
+            }
+            lua_pop(L, 1);
         }
     }
     return 0;

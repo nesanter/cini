@@ -16,10 +16,10 @@
 # along with pin-utils.  If not, see <https://www.gnu.org/licenses/>.
 
 builddir = out
-cflags = -Wall -D_FORTIFY_SOURCE=1 -flto -fdiagnostics-color -Iinclude/ini $$CFLAGS
+cflags = -Wall -flto -fdiagnostics-color -Iinclude/ini $$CFLAGS
 ldflags = $$LDFLAGS
 sanflags = -fsanitize=address,undefined
-libs =
+libs = -lluajit-5.1
 
 include active.gen.ninja
 
@@ -54,7 +54,8 @@ build out/table.o:          cc src/table.c
 
 # ...outputs
 #build test: bin out/test.o out/ini.o out/map.o out/handle.o out/table/table.o out/table/pearson.o
-#build test_table: bin out/table/table_test.o out/table/table.o out/table/pearson.o out/ini.o out/map.o
+build test_table: bin src/table_test.c out/table.o
+#  libs = -lini
 
 build ini-merge:    bin $
     out/reduce.o out/ini.o out/map.o out/table.o
