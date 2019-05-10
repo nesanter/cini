@@ -1,2 +1,2 @@
-cflags = $cflags $sanflags -g -O0 -Werror
+cflags = $cflags $sanflags -g -Og -Werror $$CFLAGS
 version = debug
