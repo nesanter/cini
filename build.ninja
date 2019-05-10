@@ -16,7 +16,7 @@
 # along with pin-utils.  If not, see <https://www.gnu.org/licenses/>.
 
 builddir = out
-cflags = -Wall -flto -fdiagnostics-color -Iinclude/ini
+cflags = -Wall -flto -fdiagnostics-color -Iinclude/ini -Iinclude
 ldflags = $$LDFLAGS
 sanflags = -fsanitize=address,undefined
 libs = -lluajit-5.1
@@ -37,7 +37,7 @@ rule bin
 rule so
   deps = gcc
   depfile = $out.d
-  command = gcc -MMD -MF $out.d -fPIC $defines $cflags -shared $in -o $out $ldflags
+  command = gcc -MMD -MF $out.d -fPIC $defines $cflags -shared $in -o $out $ldflags $libs
 
 rule archive
   command = git archive -o $out HEAD
