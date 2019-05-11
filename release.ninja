@@ -1,3 +1,4 @@
-cflags = $cflags -O2 -Werror $$CFLAGS
-version = $$VERSION
-defines = $defines -DNDEBUG
+cflags = $cflags -O2 -Werror
+ldflags = $ldflags
+version = master
+defines = -DNDEBUG

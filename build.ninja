@@ -17,12 +17,14 @@
 
 builddir = out
 cflags = -Wall -flto -fdiagnostics-color -Iinclude/ini -Iinclude
-ldflags = $$LDFLAGS
+ldflags = 
+defines =
 sanflags = -fsanitize=address,undefined
 libs = -lluajit-5.1
-defines = -DVERSION="\"$version\""
 
 include active.gen.ninja
+
+defines = -DVERSION="\"$version\"" $defines
 
 rule cc
   deps = gcc
@@ -66,8 +68,15 @@ build libini.so:        so $
     out/ini.o out/map.o out/handle.o out/table.o
 
 # ...toplevel
-build tools:    phony ini-merge ini-tojson
-build test:     phony test_table
-build all:      phony tools libini.so
-build alltest:  phony all test
+build tools:            phony $
+    ini-merge ini-tojson
+
+build test:             phony $
+    test_table
+
+build all:              phony $
+    tools libini.so
+
+build alltest:          phony $
+    all test
 

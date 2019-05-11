@@ -4,6 +4,9 @@
 
 [ ! -f "$TYPE.ninja" ] && { echo "No configuration $TYPE" >&2; exit 1 ; }
 cp -v "$TYPE.ninja" active.gen.ninja
+
 [ "$VERSION" ] && sed -i 's/version = .*/version = '"$VERSION"'/' active.gen.ninja
+[ "$CFLAGS" ] && sed -i 's/cflags = .*/cflags = $cflags '"$CFLAGS"'/' active.gen.ninja
+[ "$LDFLAGS" ] && sed -i 's/ldflags = .*/ldflags = $ldflags '"$LDFLAGS"'/' active.gen.ninja
 
 exit 0
