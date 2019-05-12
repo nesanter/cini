@@ -30,11 +30,11 @@ struct table * table_alloc()
 
 void ** table_get(
         struct table * table,
-        const uint8_t * key,
+        const char * key,
         size_t length)
 {
     lua_State * L = (lua_State *)(void *)table;
-    lua_pushlstring(L, (const char *)key, length);
+    lua_pushlstring(L, key, length);
     lua_gettable(L, LUA_GLOBALSINDEX);
     void ** v = lua_touserdata(L, -1);
     lua_pop(L, 1);
@@ -43,11 +43,11 @@ void ** table_get(
 
 void ** table_ensure(
         struct table * table,
-        const uint8_t * key,
+        const char * key,
         size_t length)
 {
     lua_State * L = (lua_State *)(void *)table;
-    lua_pushlstring(L, (const char *)key, length);
+    lua_pushlstring(L, key, length);
     lua_pushvalue(L, -1);
     lua_gettable(L, LUA_GLOBALSINDEX);
     if (lua_isnil(L, -1)) {
@@ -65,11 +65,11 @@ void ** table_ensure(
 
 void * table_pop(
         struct table * table,
-        const uint8_t * key,
+        const char * key,
         size_t length)
 {
     lua_State * L = (lua_State *)table;
-    lua_pushlstring(L, (const char *)key, length);
+    lua_pushlstring(L, key, length);
     lua_pushvalue(L, -1);
     lua_gettable(L, LUA_GLOBALSINDEX);
     if (lua_isnil(L, -1)) {
@@ -100,7 +100,7 @@ void table_free(
                 size_t length;
                 const char * k = lua_tolstring(L, -2, &length);
                 if (iterator) {
-                    iterator((const uint8_t *)k, length, v);
+                    iterator(k, length, v);
                 }
                 lua_pushvalue(L, -2);
                 lua_pushnil(L);
@@ -124,7 +124,7 @@ int table_for(
             if (v) {
                 size_t length;
                 const char * k = lua_tolstring(L, -2, &length);
-                int res = iterator((const uint8_t *)k, length, v);
+                int res = iterator(k, length, v);
                 if (res) {
                     lua_pop(L, 2);
                     return res;

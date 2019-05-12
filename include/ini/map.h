@@ -41,7 +41,7 @@
 /** value type of section tables */
 struct ini_entry {
     size_t length;
-    uint8_t data[];
+    char data[];
 };
 
 /** read INI data from file and store it in table

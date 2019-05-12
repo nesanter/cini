@@ -30,7 +30,7 @@ int main(int argc, char ** argv)
         r[3] = rand();
         int n = snprintf(s, 256, "%.*s\n", 16, (char *)&r);
         total += n + 8;
-        table_ensure(table, (const uint8_t *)s, n);
+        table_ensure(table, s, n);
     }
 
     int table_counter = get_usage(table);

@@ -32,7 +32,7 @@
 #define GROW_INCREMENT (1024)
 static size_t ini_getline(char ** bufout, size_t * szout, FILE * file)
 {
-    uint8_t * buf = (uint8_t *)*bufout;
+    char * buf = *bufout;
     size_t i, sz = *szout;
     for (i = 0; ; i++) {
         if (i >= sz) {
@@ -44,13 +44,13 @@ static size_t ini_getline(char ** bufout, size_t * szout, FILE * file)
             if (i == 0) return -1;
             break;
         }
-        buf[i] = (uint8_t)c;
+        buf[i] = (char)c;
         if (c == '\n') {
             break;
         }
     }
     *szout = sz;
-    *bufout = (char *)buf;
+    *bufout = buf;
     return i;
 }
 
@@ -71,7 +71,7 @@ struct table * ini_table_read(struct table * table, FILE * file)
     struct ini_event ev;
 
     struct ini_entry ** valp;
-    struct table ** secp = (struct table**)table_ensure(table, (uint8_t *)"\0", 0);
+    struct table ** secp = (struct table**)table_ensure(table, "", 0);
     if (!*secp) {
         *secp = table_alloc();
     }
@@ -85,12 +85,12 @@ struct table * ini_table_read(struct table * table, FILE * file)
                 break;
             case INI_EVENT_SECTION:
                 secp = (struct table**)table_ensure(
-                        table, (uint8_t*)ev.args[0], ev.length[0]);
+                        table, ev.args[0], ev.length[0]);
                 if (!*secp) *secp = table_alloc();
                 break;
             case INI_EVENT_KEY_VALUE:
                 valp = (struct ini_entry **)table_ensure(
-                        *secp, (uint8_t*)ev.args[0], ev.length[0]);
+                        *secp, ev.args[0], ev.length[0]);
                 *valp = realloc(*valp, sizeof(size_t) + ev.length[1] + 1);
                 (*valp)->length = ev.length[1];
                 memcpy((*valp)->data, ev.args[1], ev.length[1]);
@@ -98,7 +98,7 @@ struct table * ini_table_read(struct table * table, FILE * file)
                 break;
             case INI_EVENT_KEY_ONLY:
                 valp = (struct ini_entry **)table_pop(
-                        *secp, (uint8_t*)ev.args[0], ev.length[0]);
+                        *secp, ev.args[0], ev.length[0]);
                 if (valp) free(valp);
                 break;
         }
@@ -109,7 +109,7 @@ struct table * ini_table_read(struct table * table, FILE * file)
 
 void ini_section_free(struct table * table)
 {
-    int key_iter(const uint8_t * key, size_t length, void ** value)
+    int key_iter(const char * key, size_t length, void ** value)
     {
         if (*value) free(*value);
         return 0;
@@ -119,13 +119,13 @@ void ini_section_free(struct table * table)
 
 void ini_table_free(struct table * table)
 {
-    int key_iter(const uint8_t * key, size_t length, void ** value)
+    int key_iter(const char * key, size_t length, void ** value)
     {
         if (*value) free(*value);
         return 0;
     }
 
-    int sec_iter(const uint8_t * key, size_t length, void ** value)
+    int sec_iter(const char * key, size_t length, void ** value)
     {
         if (*value) {
             table_free(*(struct table **)value, key_iter);

@@ -49,7 +49,7 @@ int ini_vhandle(FILE * file, const char * prefix, enum ini_handle_opt root_opts,
         enum ini_handle_opt opts = va_arg(args, enum ini_handle_opt);
 
         //struct ini_map_section * section = ini_map_get_section(map, name);
-        struct table * section = table_pop(root, (uint8_t*)name, strlen(name));
+        struct table * section = table_pop(root, name, strlen(name));
         if (!section) {
             if (opts & INI_REQUIRED) {
                 fprintf(stderr, "%smissing required section [%s]\n", prefix, name);
@@ -79,7 +79,7 @@ int ini_vhandle(FILE * file, const char * prefix, enum ini_handle_opt root_opts,
             struct ini_entry * value = NULL;
             if (section) {
                 //value = ini_map_section_get_value(section, key);
-                value = table_pop(section, (uint8_t*)key, strlen(key));
+                value = table_pop(section, key, strlen(key));
             }
             if (!value) {
                 if (key_opts & INI_REQUIRED) {
@@ -122,7 +122,7 @@ int ini_vhandle(FILE * file, const char * prefix, enum ini_handle_opt root_opts,
 
         if (opts & INI_STRICT) {
             int unknown = 0;
-            int key_iter(const uint8_t * key, size_t length, void ** value)
+            int key_iter(const char * key, size_t length, void ** value)
             {
                 fprintf(stderr, "%sunknown key %.*s in section [%s]\n", prefix, (int)length, key, name);
                 unknown++;
@@ -149,7 +149,7 @@ int ini_vhandle(FILE * file, const char * prefix, enum ini_handle_opt root_opts,
 
     if (root_opts & INI_STRICT) {
         int unknown = 0;
-        int sec_iter(const uint8_t * name, size_t length, void ** data)
+        int sec_iter(const char * name, size_t length, void ** data)
         {
             fprintf(stderr, "%sunknown section [%.*s]\n", prefix, (int)length, name);
             unknown++;
@@ -187,7 +187,7 @@ int ini_vhandle_table(struct table * table, const char * prefix, enum ini_handle
         ini_handle_fn action = va_arg(args, ini_handle_fn);
         void * data = va_arg(args, void *);
         struct ini_entry * value = NULL;
-        value = table_pop(table, (const uint8_t *)key, strlen(key));
+        value = table_pop(table, key, strlen(key));
         if (!value) {
             if (key_opts & INI_REQUIRED) {
                 fprintf(stderr, "%smissing required key %s\n", prefix, key);
@@ -203,7 +203,7 @@ int ini_vhandle_table(struct table * table, const char * prefix, enum ini_handle
             }
         } else {
             if (action) {
-                if ((r = action(key, (const char*)value->data, data))) {
+                if ((r = action(key, value->data, data))) {
                     free(value);
                     return r;
                 }
@@ -214,7 +214,7 @@ int ini_vhandle_table(struct table * table, const char * prefix, enum ini_handle
 
     if (opts & INI_STRICT) {
         int unknown = 0;
-        int key_iter(const uint8_t * key, size_t length, void ** value)
+        int key_iter(const char * key, size_t length, void ** value)
         {
             fprintf(stderr, "%sunknown key %.*s\n", prefix, (int)length, key);
             unknown++;

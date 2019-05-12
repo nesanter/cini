@@ -48,13 +48,13 @@ static struct {
 };
 
 void table_out(struct table * table, FILE * f) {
-    int key_iter(const uint8_t * key, size_t length, void ** value)
+    int key_iter(const char * key, size_t length, void ** value)
     {
-        fprintf(f, "%.*s = %s\n", (int)length, (char *)key, (*(struct ini_entry **)value)->data);
+        fprintf(f, "%.*s = %s\n", (int)length, key, (*(struct ini_entry **)value)->data);
         return 0;
     }
 
-    int sec_iter(const uint8_t * key, size_t length, void ** value)
+    int sec_iter(const char * key, size_t length, void ** value)
     {
         if (length > 0) {
             fprintf(f, "[%.*s]\n", (int)length, key);

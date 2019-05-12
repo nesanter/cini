@@ -43,7 +43,7 @@
 struct table;
 
 /** iterator callback type **/
-typedef int (*table_iterator_t)(const uint8_t *, size_t, void **);
+typedef int (*table_iterator_t)(const char *, size_t, void **);
 
 /** get pointer to value in table associated with key
  *  
@@ -51,7 +51,7 @@ typedef int (*table_iterator_t)(const uint8_t *, size_t, void **);
  */
 void ** table_get(
     struct table * table,
-    const uint8_t * key,
+    const char * key,
     size_t length);
 
 /** get pointer to value in table associated with key,
@@ -63,7 +63,7 @@ void ** table_get(
  */
 void ** table_ensure(
     struct table * table,
-    const uint8_t * key,
+    const char * key,
     size_t length);
 
 /** remove element from table and return associated value
@@ -74,7 +74,7 @@ void ** table_ensure(
  */
 void * table_pop(
     struct table * table,
-    const uint8_t * key,
+    const char * key,
     size_t length);
 
 /** allocate memory for a new table **/
