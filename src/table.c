@@ -19,8 +19,13 @@
 
 #include <stdio.h>
 
+#ifdef INCLUDE_LUAJIT
+#include <luajit-2.0/lua.h>
+#include <luajit-2.0/lauxlib.h>
+#else
 #include <lua5.1/lua.h>
 #include <lua5.1/lauxlib.h>
+#endif /* INCLUDE_LUAJIT */
 
 struct table * table_alloc()
 {

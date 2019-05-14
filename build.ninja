@@ -17,8 +17,8 @@
 
 builddir = out
 cflags = -Wall -flto -fdiagnostics-color -Iinclude/ini -Iinclude
-ldflags = 
-defines =
+ldflags =
+defines = -DINCLUDE_LUAJIT
 sanflags = -fsanitize=address,undefined
 libs = -lluajit-5.1
 
