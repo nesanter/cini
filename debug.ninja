@@ -1,4 +1,4 @@
 cflags = $cflags $sanflags -g -Og -Werror
 ldflags = $ldflags
 version = debug
-defines =
+defines = $defines
