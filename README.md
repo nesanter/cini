@@ -14,3 +14,7 @@
 
 The assumed interpretation of a `KEY_ONLY` event is as a key removal.
 
+## `#define` Configurations
+
+ - `INCLUDE_LUAJIT`: use `luajit-2.0` header directory instead of `lua51`
+ - `INI_CONST_LINE`: do not modify lines passed to `ini_parse_line` and declare `line_t` as `const`
