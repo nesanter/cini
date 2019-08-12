@@ -51,22 +51,30 @@ void table_out(struct table * table, FILE * f) {
     int key_iter(const char * key, size_t length, void ** value)
     {
         fprintf(f, "%.*s = %s\n", (int)length, key, (*(struct ini_entry **)value)->data);
+        if (value) free(*value);
         return 0;
     }
 
+    int need_newline = 0;
     int sec_iter(const char * key, size_t length, void ** value)
     {
+        if (need_newline) {
+            fprintf(f, "\n");
+        }
         if (length > 0) {
             fprintf(f, "[%.*s]\n", (int)length, key);
         } else if (args.default_section) {
             fprintf(f, "[%s]\n", args.default_section);
         }
-        table_for(*(struct table **)value, key_iter);
-        fprintf(f, "\n");
+        //table_for(*(struct table **)value, key_iter);
+        need_newline = 1;
         return 0;
     }
 
-    table_for(table, sec_iter);
+    tablex_for(table, key_iter, sec_iter);
+    if (need_newline) {
+        fprintf(f, "\n");
+    }
 }
 
 static error_t parse_opt(int key, char * arg, struct argp_state * state)
@@ -100,11 +108,11 @@ static error_t parse_opt(int key, char * arg, struct argp_state * state)
             if (!in) {
                 argp_failure(state, 1, errno, "error opening %s for reading", arg);
             }
-            ini_table_read(table, in);
+            ini_tablex_read(table, in);
             fclose(in);
             break;
         case ARGP_KEY_NO_ARGS:
-            ini_table_read(table, stdin);
+            ini_tablex_read(table, stdin);
             break;
         case ARGP_KEY_SUCCESS:
             if (args.out) {
@@ -133,7 +141,7 @@ int main(int argc, char ** argv)
 
     argp_parse(&argp, argc, argv, 0, 0, &table);
 
-    ini_table_free(table);
+//    ini_table_free(table);
 
     return 0;
 }

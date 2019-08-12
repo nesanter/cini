@@ -53,6 +53,16 @@ struct table * ini_table_read(
         struct table * table,
         FILE * file);
 
+/** read INI data from file and store it in table using tablex format
+ *
+ *  table is allocated if NULL and fresh table is returned,
+ *  otherwise return value is the table argument
+ */
+struct table * ini_tablex_read(
+        struct table * table,
+        FILE * file);
+
+
 /** free both levels of table **/
 void ini_table_free(struct table * table);
 

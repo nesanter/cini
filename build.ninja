@@ -67,12 +67,15 @@ build ini-tojson:       bin $
 build libini.so:        so $
     out/ini.o out/map.o out/handle.o out/table.o
 
+build test2:            bin $
+    out/test.o out/table.o out/ini.o out/map.o
+
 # ...toplevel
 build tools:            phony $
     ini-merge ini-tojson
 
 build test:             phony $
-    test_table
+    test_table test2
 
 build all:              phony $
     tools libini.so
@@ -80,3 +83,4 @@ build all:              phony $
 build alltest:          phony $
     all test
 
+default all

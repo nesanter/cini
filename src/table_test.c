@@ -20,7 +20,7 @@ int main(int argc, char ** argv)
     srand(time(NULL));
     struct table * table = table_alloc();
 
-    int total = 0;
+    long total = 0;
     char s[256];
     for (size_t i = 0; i < 1000000; i++) {
         int r[4];
@@ -30,13 +30,13 @@ int main(int argc, char ** argv)
         r[3] = rand();
         int n = snprintf(s, 256, "%.*s\n", 16, (char *)&r);
         total += n + 8;
-        table_ensure(table, s, n);
+        tablex_ensure(table, s, n, NULL);
     }
 
-    int table_counter = get_usage(table);
+    long table_counter = get_usage(table);
 
-    printf("%d, %d\n", table_counter, total);
-    printf("%d\n", table_counter / total);
+    printf("used %ld, min %ld\n", table_counter, total);
+    printf("%ld%%\n", 100 * table_counter / total);
 
     table_free(table, NULL);
 

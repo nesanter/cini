@@ -21,6 +21,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 void test_print_events()
 {
@@ -137,6 +138,7 @@ int test_builtin()
 }
 */
 
+/*
 static int inc = 0;
 
 static int opt_print(const char * key, const char * value, void * data)
@@ -167,4 +169,87 @@ int main(int argc, char ** argv)
                 NULL,
             NULL
         );
+}*/
+
+/*
+static size_t arrays(const char * key, size_t length, char *** indices)
+{
+    size_t n = 0;
+    for (size_t i = 0; i < length - 2; i++) {
+        if (key[i] == '[') {
+            size_t j;
+            for (j = i + 1; j < length; j++) {
+                if (key[j] == ']') {
+                    *indices = realloc(*indices, sizeof(**indices) * (n + 1));
+                    (*indices)[n] = malloc(j - i + 1);
+                    memcpy((*indices)[n], &key[i + 1], j - i - 1);
+                    (*indices)[n][j - i - 1] = '\0';
+                    n++;
+                    break;
+                }
+            }
+            i = j;
+        }
+    }
+    return n;
+}
+
+int main(int argc, char ** argv)
+{
+    struct table * table = ini_table_read(NULL, stdin);
+
+    struct table * table2 = table_alloc();
+    struct table * section2 = NULL;
+    (void)section2;
+
+    int key_iter(const char * key, size_t length, void ** value)
+    {
+        //const char * s = *(const char **)value;
+        char ** indices = NULL;
+        size_t n = arrays(key, length, &indices);
+        printf("n = %zu\n", n);
+        for (size_t i = 0; i < n; i++) {
+            printf("[%zu] = %s\n", i, indices[i]);
+            free(indices[i]);
+        }
+        if (indices) free(indices);
+        return 0;
+    }
+
+    int sec_iter(const char * name, size_t length, void ** value)
+    {
+        struct table * section = *(struct table **)value;
+        section2 = (*(struct table **)table_ensure(table2, name, length) = table_alloc());
+        table_for(section, key_iter);
+        return 0;
+    }
+
+    table_for(table, sec_iter);
+    ini_table_free(table);
+}
+*/
+
+int main(int argc, char ** argv)
+{
+    struct table * table = table_alloc();
+
+    void ** d = tablex_ensure(table, "foo", 3LU, "bar", 3LU, "snrk", 4LU, NULL);
+    *d = (void *)7;
+    d = tablex_get(table, "foo", 0LU, "bar", 0LU, "snrk", 0LU, NULL);
+    printf("%ld\n", (long)*d);
+
+    int sec_iter(const char * key, size_t length, void ** ignore)
+    {
+        printf("sec %s\n", key);
+        return 0;
+    }
+
+    int iter(const char * key, size_t length, void ** valp)
+    {
+        printf("key %s\n", key);
+        return 0;
+    }
+
+    tablex_for(table, iter, sec_iter);
+
 }

@@ -46,29 +46,55 @@ struct table;
 typedef int (*table_iterator_t)(const char *, size_t, void **);
 
 /** get pointer to value in table associated with key
- *  
- *  returns pointer if key in table, NULL otherwise
+ *
+ *  if length is zero, key is assumed to be null-terminated,
+ *  otherwise length is the number of bytes
+ *
+ *  returns pointer to value if key is in table, NULL otherwise
  */
 void ** table_get(
     struct table * table,
     const char * key,
     size_t length);
 
+/** as table_get but for tablex format */
+void ** tablex_get(
+    struct table * table,
+    const char * key,
+    size_t length,
+    ...);
+
 /** get pointer to value in table associated with key,
  *  adding key if not already present
  *
  *  may reorganize the table invalidating previous value pointers
  *
- *  returns pointer for existing or new value
+ *  if length is zero, key is assumed to be null-terminated,
+ *  otherwise length is the number of bytes
+ *
+ *  returns pointer to value for existing or new value,
+ *  new values are initialized to NULL
  */
 void ** table_ensure(
     struct table * table,
     const char * key,
     size_t length);
 
+/** as table_ensure but for tablex format */
+void ** tablex_ensure(
+    struct table * table,
+    const char * key,
+    size_t length,
+    ...);
+
+
 /** remove element from table and return associated value
+ *
  *  NOTE: differs from get/ensure in that pointer contents is returned;
  *        thus a non-existant key has same return as a NULL-valued key
+ *
+ *  if length is zero, key is assumed to be null-terminated,
+ *  otherwise length is the number of bytes
  *
  *  returns value of key or NULL if key not in table
  */
@@ -76,6 +102,8 @@ void * table_pop(
     struct table * table,
     const char * key,
     size_t length);
+
+/** TODO: tablex_pop **/
 
 /** allocate memory for a new table **/
 struct table * table_alloc();
@@ -88,6 +116,8 @@ void table_free(
     struct table * table,
     table_iterator_t iterator);
 
+/** TODO: tablex_free */
+
 /** run iterator on each key/value pair currently in table,
  *  stopping on the first iterator to return a non-zero value.
  *
@@ -96,5 +126,12 @@ void table_free(
 int table_for(
     struct table * table,
     table_iterator_t iterator);
+
+/** as table_for but for tablex format */
+int tablex_for(
+    struct table * table,
+    table_iterator_t iterator,
+    table_iterator_t sec_iterator);
+
 
 #endif /* TABLE_H */

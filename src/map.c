@@ -71,7 +71,7 @@ struct table * ini_table_read(struct table * table, FILE * file)
     struct ini_event ev;
 
     struct ini_entry ** valp;
-    struct table ** secp = (struct table**)table_ensure(table, "", 0);
+    struct table ** secp = (struct table **)table_ensure(table, "", 0);
     if (!*secp) {
         *secp = table_alloc();
     }
@@ -103,6 +103,70 @@ struct table * ini_table_read(struct table * table, FILE * file)
                 break;
         }
     }
+    free(line);
+    return table;
+}
+
+struct table * ini_tablex_read(struct table * table, FILE * file)
+{
+    if (!table) {
+        table = table_alloc();
+    }
+
+    size_t n = 0, length;
+    char * line = NULL;
+    struct ini_event ev;
+
+    struct ini_entry ** valp;
+    char * sec_name = strdup("");
+    size_t sec_name_length = 0;
+    //struct table ** secp = (struct table **)tablex_ensure(table, "", 0);
+    //if (!*secp) {
+    //    *secp = table_alloc();
+    //}
+
+    while ((length = ini_getline(&line, &n, file)) != -1) {
+        ini_parse_line(line, length, &ev);
+        switch (ev.kind) {
+            case INI_EVENT_NONE:
+                break;
+            case INI_EVENT_COMMENT:
+                break;
+            case INI_EVENT_SECTION:
+                /*
+                secp = (struct table**)table_ensure(
+                        table, ev.args[0], ev.length[0]);
+                if (!*secp) *secp = table_alloc();
+                */
+                if (sec_name) free(sec_name);
+                sec_name = strdup(ev.args[0]);
+                sec_name_length = ev.length[0];
+                break;
+            case INI_EVENT_KEY_VALUE:
+                /*
+                valp = (struct ini_entry **)table_ensure(
+                        *secp, ev.args[0], ev.length[0]);
+                */
+                valp = (struct ini_entry **)tablex_ensure(
+                        table,
+                        sec_name, sec_name_length,
+                        ev.args[0], ev.length[0],
+                        NULL);
+                *valp = realloc(*valp, sizeof(size_t) + ev.length[1] + 1);
+                (*valp)->length = ev.length[1];
+                memcpy((*valp)->data, ev.args[1], ev.length[1]);
+                (*valp)->data[ev.length[1]] = '\0';
+                break;
+            case INI_EVENT_KEY_ONLY:
+                /*
+                valp = (struct ini_entry **)table_pop(
+                        *secp, ev.args[0], ev.length[0]);
+                if (valp) free(valp);
+                */
+                break;
+        }
+    }
+    free(sec_name);
     free(line);
     return table;
 }
