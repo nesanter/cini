@@ -9,7 +9,7 @@
 3. if first character is `#`, `INI_EVENT_COMMENT`
 4. if first character `[` and last `]`, `INI_EVENT_SECTION`
 5. if contains `=`,
-   split key and value at first occurance, `INI_EVENT_KEY_VALUE`
+   split key and value at first occurance, strip whitespace again, `INI_EVENT_KEY_VALUE`
 6. else, `INI_EVENT_KEY_ONLY`
 
 The assumed interpretation of a `KEY_ONLY` event is as a key removal.
