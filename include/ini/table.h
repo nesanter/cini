@@ -116,7 +116,7 @@ void table_free(
     struct table * table,
     table_iterator_t iterator);
 
-/** TODO: tablex_free */
+/** TODO: tablex_free -- actually might not be needed? */
 
 /** run iterator on each key/value pair currently in table,
  *  stopping on the first iterator to return a non-zero value.
