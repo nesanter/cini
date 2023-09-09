@@ -35,14 +35,14 @@ int ini_handle(FILE * file, const char * prefix, void * user, enum ini_handle_op
 
 struct userdata {
     const char * prefix;
-    const char * name;
+    const char * secname;
     int unknown;
 };
 
 static int key_iter(const char * key, size_t length, void ** value, void * user)
 {
     struct userdata * ud = (struct userdata *)user;
-    fprintf(stderr, "%sunknown key %.*s in section [%s]\n", ud->prefix, (int)length, key, ud->name);
+    fprintf(stderr, "%sunknown key %.*s in section [%s]\n", ud->prefix, (int)length, key, ud->secname);
     ud->unknown++;
     return 0;
 }
@@ -50,7 +50,7 @@ static int key_iter(const char * key, size_t length, void ** value, void * user)
 static int sec_iter(const char * name, size_t length, void ** data, void * user)
 {
     struct userdata * ud = (struct userdata *)user;
-    fprintf(stderr, "%sunknown section [%.*s]\n", ud->prefix, (int)length, ud->name);
+    fprintf(stderr, "%sunknown section [%.*s]\n", ud->prefix, (int)length, name);
     ud->unknown++;
     return 0;
 }
@@ -135,7 +135,7 @@ int ini_vhandle(FILE * file, const char * prefix, void * user, enum ini_handle_o
         if (opts & INI_STRICT) {
             struct userdata userdata = (struct userdata) {
                 .prefix = prefix,
-                .name = name,
+                .secname = name,
                 .unknown = 0
             };
             table_for(section, key_iter, &userdata);
@@ -153,7 +153,7 @@ int ini_vhandle(FILE * file, const char * prefix, void * user, enum ini_handle_o
     if (root_opts & INI_STRICT) {
         struct userdata userdata = (struct userdata) {
             .prefix = prefix,
-            .name = name,
+            .secname = name,
             .unknown = 0
         };
         table_for(root, sec_iter, &userdata);
