@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU General Public License
  * along with cini.  If not, see <https://www.gnu.org/licenses/>.
  */
-#include "table.h"
+#include "ini/table.h"
 
 #include <stdarg.h>
 #include <stdio.h>

@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU General Public License
  * along with cini.  If not, see <https://www.gnu.org/licenses/>.
  */
-#include "ini.h"
+#include "ini/ini.h"
 
 void ini_parse_line(
         line_t * line,

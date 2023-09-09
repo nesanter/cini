@@ -15,9 +15,9 @@
  * You should have received a copy of the GNU General Public License
  * along with cini.  If not, see <https://www.gnu.org/licenses/>.
  */
-#include "ini.h"
-#include "map.h"
-#include "opts.h"
+#include "ini/ini.h"
+#include "ini/map.h"
+#include "ini/opts.h"
 
 #include <stdio.h>
 #include <stdlib.h>

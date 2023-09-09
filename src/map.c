@@ -15,10 +15,10 @@
  * You should have received a copy of the GNU General Public License
  * along with cini.  If not, see <https://www.gnu.org/licenses/>.
  */
-#include "ini.h"
+#include "ini/ini.h"
 
-#include "map.h"
-#include "table.h"
+#include "ini/map.h"
+#include "ini/table.h"
 
 #include <string.h>
 #include <assert.h>

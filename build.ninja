@@ -16,7 +16,7 @@
 # along with pin-utils.  If not, see <https://www.gnu.org/licenses/>.
 
 builddir = out
-cflags = -Wall -flto -fdiagnostics-color -Iinclude/ini -Iinclude
+cflags = -Wall -flto -fdiagnostics-color -Iinclude
 ldflags =
 defines = -DINCLUDE_LUAJIT
 sanflags = -fsanitize=address,undefined

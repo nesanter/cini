@@ -21,7 +21,7 @@
 #include <argp.h>
 #include <string.h>
 
-#include "ini.h"
+#include "ini/ini.h"
 
 #include <jansson.h>
 
