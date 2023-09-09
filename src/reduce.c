@@ -48,7 +48,7 @@ static struct {
 };
 
 void table_out(struct table * table, FILE * f) {
-    int key_iter(const char * key, size_t length, void ** value)
+    int key_iter(const char * key, size_t length, void ** value, void * user)
     {
         fprintf(f, "%.*s = %s\n", (int)length, key, (*(struct ini_entry **)value)->data);
         if (value) free(*value);
@@ -56,7 +56,7 @@ void table_out(struct table * table, FILE * f) {
     }
 
     int need_newline = 0;
-    int sec_iter(const char * key, size_t length, void ** value)
+    int sec_iter(const char * key, size_t length, void ** value, void * user)
     {
         if (need_newline) {
             fprintf(f, "\n");
@@ -71,7 +71,7 @@ void table_out(struct table * table, FILE * f) {
         return 0;
     }
 
-    tablex_for(table, key_iter, sec_iter);
+    tablex_for(table, key_iter, NULL, sec_iter, NULL);
     if (need_newline) {
         fprintf(f, "\n");
     }

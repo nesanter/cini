@@ -30,12 +30,12 @@ enum ini_handle_opt {
     INI_STRICT        = 4
 };
 
-typedef int (*ini_handle_fn)(const char * key, const char * value, void * data);
+typedef int (*ini_handle_fn)(const char * key, const char * value, void * data, void * user);
 
-int ini_handle(FILE * file, const char * prefix, enum ini_handle_opt root_opts, ...);
-int ini_vhandle(FILE * file, const char * prefix, enum ini_handle_opt root_opts, va_list args);
+int ini_handle(FILE * file, const char * prefix, void * user, enum ini_handle_opt root_opts, ...);
+int ini_vhandle(FILE * file, const char * prefix, void * user, enum ini_handle_opt root_opts, va_list args);
 
-int ini_handle_table(struct table * table, const char * prefix, enum ini_handle_opt opts, ...);
-int ini_vhandle_table(struct table * table, const char * prefix, enum ini_handle_opt opts, va_list args);
+//int ini_handle_table(struct table * table, const char * prefix, enum ini_handle_opt opts, ...);
+//int ini_vhandle_table(struct table * table, const char * prefix, enum ini_handle_opt opts, va_list args);
 
 #endif /* INI_UTIL_H */

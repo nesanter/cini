@@ -21,19 +21,41 @@
 #include <stdlib.h>
 #include <string.h>
 
-int ini_handle(FILE * file, const char * prefix, enum ini_handle_opt root_opts, ...)
+int ini_handle(FILE * file, const char * prefix, void * user, enum ini_handle_opt root_opts, ...)
 {
     va_list args;
     va_start(args, root_opts);
 
-    int r = ini_vhandle(file, prefix, root_opts, args);
+    int r = ini_vhandle(file, prefix, user, root_opts, args);
 
     va_end(args);
 
     return r;
 }
 
-int ini_vhandle(FILE * file, const char * prefix, enum ini_handle_opt root_opts, va_list args)
+struct userdata {
+    const char * prefix;
+    const char * name;
+    int unknown;
+};
+
+static int key_iter(const char * key, size_t length, void ** value, void * user)
+{
+    struct userdata * ud = (struct userdata *)user;
+    fprintf(stderr, "%sunknown key %.*s in section [%s]\n", ud->prefix, (int)length, key, ud->name);
+    ud->unknown++;
+    return 0;
+}
+
+static int sec_iter(const char * name, size_t length, void ** data, void * user)
+{
+    struct userdata * ud = (struct userdata *)user;
+    fprintf(stderr, "%sunknown section [%.*s]\n", ud->prefix, (int)length, ud->name);
+    ud->unknown++;
+    return 0;
+}
+
+int ini_vhandle(FILE * file, const char * prefix, void * user, enum ini_handle_opt root_opts, va_list args)
 {
     struct table * root = ini_table_read(NULL, file);
 
@@ -89,7 +111,7 @@ int ini_vhandle(FILE * file, const char * prefix, enum ini_handle_opt root_opts,
                     continue;
                 }
                 if (action) {
-                    if ((r = action(key, NULL, data))) {
+                    if ((r = action(key, NULL, data, user))) {
                         if (section) {
                             ini_section_free(section);
                         }
@@ -99,7 +121,7 @@ int ini_vhandle(FILE * file, const char * prefix, enum ini_handle_opt root_opts,
                 }
             } else {
                 if (action) {
-                    if ((r = action(key, (const char*)value->data, data))) {
+                    if ((r = action(key, (const char*)value->data, data, user))) {
                         free(value);
                         ini_section_free(section);
                         ini_table_free(root);
@@ -111,15 +133,13 @@ int ini_vhandle(FILE * file, const char * prefix, enum ini_handle_opt root_opts,
         }
 
         if (opts & INI_STRICT) {
-            int unknown = 0;
-            int key_iter(const char * key, size_t length, void ** value)
-            {
-                fprintf(stderr, "%sunknown key %.*s in section [%s]\n", prefix, (int)length, key, name);
-                unknown++;
-                return 0;
-            }
-            table_for(section, key_iter);
-            if (unknown) {
+            struct userdata userdata = (struct userdata) {
+                .prefix = prefix,
+                .name = name,
+                .unknown = 0
+            };
+            table_for(section, key_iter, &userdata);
+            if (userdata.unknown) {
                 ini_section_free(section);
                 ini_table_free(root);
                 return 1;
@@ -131,15 +151,13 @@ int ini_vhandle(FILE * file, const char * prefix, enum ini_handle_opt root_opts,
     }
 
     if (root_opts & INI_STRICT) {
-        int unknown = 0;
-        int sec_iter(const char * name, size_t length, void ** data)
-        {
-            fprintf(stderr, "%sunknown section [%.*s]\n", prefix, (int)length, name);
-            unknown++;
-            return 0;
-        }
-        table_for(root, sec_iter);
-        if (unknown) {
+        struct userdata userdata = (struct userdata) {
+            .prefix = prefix,
+            .name = name,
+            .unknown = 0
+        };
+        table_for(root, sec_iter, &userdata);
+        if (userdata.unknown) {
             ini_table_free(root);
             return 1;
         }
@@ -149,6 +167,7 @@ int ini_vhandle(FILE * file, const char * prefix, enum ini_handle_opt root_opts,
     return 0;
 }
 
+/*
 int ini_handle_table(struct table * table, const char * prefix, enum ini_handle_opt opts, ...)
 {
     va_list args;
@@ -210,4 +229,4 @@ int ini_vhandle_table(struct table * table, const char * prefix, enum ini_handle
     }
     return 0;
 }
-
+*/

@@ -157,7 +157,7 @@ struct table * ini_tablex_read(struct table * table, FILE * file)
     return table;
 }
 
-static int freeing_key_iter(const char * key, size_t length, void ** value)
+static int freeing_key_iter(const char * key, size_t length, void ** value, void * user)
 {
     if (*value) free(*value);
     return 0;
@@ -165,19 +165,19 @@ static int freeing_key_iter(const char * key, size_t length, void ** value)
 
 void ini_section_free(struct table * table)
 {
-    table_free(table, freeing_key_iter);
+    table_free(table, freeing_key_iter, NULL);
 }
 
-static int freeing_sec_iter(const char * key, size_t length, void ** value)
+static int freeing_sec_iter(const char * key, size_t length, void ** value, void * user)
 {
     if (*value) {
-        table_free(*(struct table **)value, freeing_key_iter);
+        table_free(*(struct table **)value, freeing_key_iter, NULL);
     }
     return 0;
 }
 
 void ini_table_free(struct table * table)
 {
-    table_free(table, freeing_sec_iter);
+    table_free(table, freeing_sec_iter, NULL);
 }
 

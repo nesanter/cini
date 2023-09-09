@@ -43,7 +43,7 @@
 struct table;
 
 /** iterator callback type **/
-typedef int (*table_iterator_t)(const char *, size_t, void **);
+typedef int (*table_iterator_t)(const char *, size_t, void **, void *);
 
 /** get pointer to value in table associated with key
  *
@@ -114,7 +114,8 @@ struct table * table_alloc();
  */
 void table_free(
     struct table * table,
-    table_iterator_t iterator);
+    table_iterator_t iterator,
+    void * user);
 
 /** TODO: tablex_free -- actually might not be needed? */
 
@@ -125,13 +126,16 @@ void table_free(
  */
 int table_for(
     struct table * table,
-    table_iterator_t iterator);
+    table_iterator_t iterator,
+    void * user);
 
 /** as table_for but for tablex format */
 int tablex_for(
     struct table * table,
     table_iterator_t iterator,
-    table_iterator_t sec_iterator);
+    void * user1,
+    table_iterator_t sec_iterator,
+    void * user2);
 
 
 #endif /* TABLE_H */

@@ -200,7 +200,8 @@ void * table_pop(
 
 void table_free(
         struct table * table,
-        table_iterator_t iterator)
+        table_iterator_t iterator,
+        void * user)
 {
     lua_State * L = (lua_State *)table;
     lua_pushnil(L);
@@ -211,7 +212,7 @@ void table_free(
                 size_t length;
                 const char * k = lua_tolstring(L, -2, &length);
                 if (iterator) {
-                    iterator(k, length, v);
+                    iterator(k, length, v, user);
                 }
                 lua_pushvalue(L, -2);
                 lua_pushnil(L);
@@ -225,7 +226,8 @@ void table_free(
 
 int table_for(
         struct table * table,
-        table_iterator_t iterator)
+        table_iterator_t iterator,
+        void * user)
 {
     lua_State * L = (lua_State *)table;
     lua_pushnil(L);
@@ -235,7 +237,7 @@ int table_for(
             if (v) {
                 size_t length;
                 const char * k = lua_tolstring(L, -2, &length);
-                int res = iterator(k, length, v);
+                int res = iterator(k, length, v, user);
                 if (res) {
                     lua_pop(L, 2);
                     return res;
@@ -247,10 +249,53 @@ int table_for(
     return 0;
 }
 
+static int subiter(
+        table_iterator_t iterator,
+        void * user1,
+        table_iterator_t sec_iterator,
+        void * user2,
+        lua_State * L)
+{
+    size_t length;
+    const char * k = lua_tolstring(L, -2, &length);
+    int res = sec_iterator(k, length, NULL, user2);
+
+    if (res) {
+        lua_pop(L, 2);
+        return res;
+    }
+
+    lua_pushnil(L);
+    while (lua_next(L, -2)) {
+        if (lua_type(L, -1) == LUA_TTABLE) {
+            int res = subiter(iterator, user1, sec_iterator, user2, L);
+            if (res) {
+                lua_pop(L, 2);
+                return res;
+            }
+        } else {
+            void ** v = lua_touserdata(L, -1);
+            if (v) {
+                size_t length;
+                const char * k = lua_tolstring(L, -2, &length);
+                int res = iterator(k, length, v, user1);
+                if (res) {
+                    lua_pop(L, 2);
+                    return res;
+                }
+            }
+        }
+        lua_pop(L, 1);
+    }
+    return 0;
+}
+
 int tablex_for(
         struct table * table,
         table_iterator_t iterator,
-        table_iterator_t sec_iterator)
+        void * user1,
+        table_iterator_t sec_iterator,
+        void * user2)
 {
     lua_State * L = (lua_State *)table;
     lua_pushnil(L);
@@ -258,43 +303,7 @@ int tablex_for(
         if (lua_type(L, -2) == LUA_TSTRING) {
             if (lua_type(L, -1) == LUA_TTABLE) {
 
-                int subiter()
-                {
-                    size_t length;
-                    const char * k = lua_tolstring(L, -2, &length);
-                    int res = sec_iterator(k, length, NULL);
-
-                    if (res) {
-                        lua_pop(L, 2);
-                        return res;
-                    }
-
-                    lua_pushnil(L);
-                    while (lua_next(L, -2)) {
-                        if (lua_type(L, -1) == LUA_TTABLE) {
-                            int res = subiter();
-                            if (res) {
-                                lua_pop(L, 2);
-                                return res;
-                            }
-                        } else {
-                            void ** v = lua_touserdata(L, -1);
-                            if (v) {
-                                size_t length;
-                                const char * k = lua_tolstring(L, -2, &length);
-                                int res = iterator(k, length, v);
-                                if (res) {
-                                    lua_pop(L, 2);
-                                    return res;
-                                }
-                            }
-                        }
-                        lua_pop(L, 1);
-                    }
-                    return 0;
-                }
-
-                int res = subiter();
+                int res = subiter(iterator, user1, sec_iterator, user2, L);
                 if (res) {
                     lua_pop(L, 2);
                     return res;
@@ -304,7 +313,7 @@ int tablex_for(
                 if (v) {
                     size_t length;
                     const char * k = lua_tolstring(L, -2, &length);
-                    int res = iterator(k, length, v);
+                    int res = iterator(k, length, v, user1);
                     if (res) {
                         lua_pop(L, 2);
                         return res;
