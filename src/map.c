@@ -1,4 +1,4 @@
-/* Copyright © 2019 Noah Santer <personal@mail.mossy-tech.com>
+/* Copyright © 2023 Noah Santer <personal@mail.mossy-tech.com>
  *
  * This file is part of cini.
  * 
@@ -120,33 +120,23 @@ struct table * ini_tablex_read(struct table * table, FILE * file)
     struct ini_entry ** valp;
     char * sec_name = strdup("");
     size_t sec_name_length = 0;
-    //struct table ** secp = (struct table **)tablex_ensure(table, "", 0);
-    //if (!*secp) {
-    //    *secp = table_alloc();
-    //}
 
     while ((length = ini_getline(&line, &n, file)) != -1) {
         ini_parse_line(line, length, &ev);
         switch (ev.kind) {
             case INI_EVENT_NONE:
                 break;
+
             case INI_EVENT_COMMENT:
                 break;
+
             case INI_EVENT_SECTION:
-                /*
-                secp = (struct table**)table_ensure(
-                        table, ev.args[0], ev.length[0]);
-                if (!*secp) *secp = table_alloc();
-                */
                 if (sec_name) free(sec_name);
                 sec_name = strdup(ev.args[0]);
                 sec_name_length = ev.length[0];
                 break;
+
             case INI_EVENT_KEY_VALUE:
-                /*
-                valp = (struct ini_entry **)table_ensure(
-                        *secp, ev.args[0], ev.length[0]);
-                */
                 valp = (struct ini_entry **)tablex_ensure(
                         table,
                         sec_name, sec_name_length,
@@ -157,12 +147,8 @@ struct table * ini_tablex_read(struct table * table, FILE * file)
                 memcpy((*valp)->data, ev.args[1], ev.length[1]);
                 (*valp)->data[ev.length[1]] = '\0';
                 break;
+
             case INI_EVENT_KEY_ONLY:
-                /*
-                valp = (struct ini_entry **)table_pop(
-                        *secp, ev.args[0], ev.length[0]);
-                if (valp) free(valp);
-                */
                 break;
         }
     }
@@ -171,32 +157,27 @@ struct table * ini_tablex_read(struct table * table, FILE * file)
     return table;
 }
 
+static int freeing_key_iter(const char * key, size_t length, void ** value)
+{
+    if (*value) free(*value);
+    return 0;
+}
+
 void ini_section_free(struct table * table)
 {
-    int key_iter(const char * key, size_t length, void ** value)
-    {
-        if (*value) free(*value);
-        return 0;
+    table_free(table, freeing_key_iter);
+}
+
+static int freeing_sec_iter(const char * key, size_t length, void ** value)
+{
+    if (*value) {
+        table_free(*(struct table **)value, freeing_key_iter);
     }
-    table_free(table, key_iter);
+    return 0;
 }
 
 void ini_table_free(struct table * table)
 {
-    int key_iter(const char * key, size_t length, void ** value)
-    {
-        if (*value) free(*value);
-        return 0;
-    }
-
-    int sec_iter(const char * key, size_t length, void ** value)
-    {
-        if (*value) {
-            table_free(*(struct table **)value, key_iter);
-        }
-        return 0;
-    }
-
-    table_free(table, sec_iter);
+    table_free(table, freeing_sec_iter);
 }
 

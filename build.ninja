@@ -52,6 +52,7 @@ build out/tojson.o:     cc src/tojson.c
 build out/reduce.o:     cc src/reduce.c
 build out/test.o:       cc src/test.c
 build out/table.o:      cc src/table.c
+build out/tool.o:       cc src/tool.c
 
 # ...outputs
 build test_table:       bin $
@@ -70,9 +71,12 @@ build libini.so:        so $
 build test2:            bin $
     out/test.o out/table.o out/ini.o out/map.o
 
+build ini-tool:         bin $
+    out/tool.o out/ini.o
+
 # ...toplevel
 build tools:            phony $
-    ini-merge ini-tojson
+    ini-merge ini-tojson ini-tool
 
 build test:             phony $
     test_table test2

@@ -22,8 +22,8 @@
 #include <string.h>
 
 #ifdef INCLUDE_LUAJIT
-#include <luajit-2.0/lua.h>
-#include <luajit-2.0/lauxlib.h>
+#include <luajit-2.1/lua.h>
+#include <luajit-2.1/lauxlib.h>
 #else
 #include <lua5.1/lua.h>
 #include <lua5.1/lauxlib.h>
